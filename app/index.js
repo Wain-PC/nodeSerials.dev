@@ -1,5 +1,12 @@
-var server = require('./core/server');
-var router = require('./core/router');
+var express = require('express');
+var app = express();
+var router = require('./routes.js')(app);
 
-//starting the server
-server.start(router.route);
+
+//404 error
+console.log("404 listener add");
+app.all("*", function (request, response) {
+    response.end("Page not found");
+});
+
+app.listen(1337);

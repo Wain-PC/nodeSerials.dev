@@ -1,0 +1,15 @@
+//
+   Created with JetBrains WebStorm.
+   User: wain-_000
+   Date: 25.01.14
+   Time: 19:13
+   To change this template use File | Settings | File Templates.
+extends template
+block common-categories
+
+    if dataArray.found
+        - item=dataArray;
+        - url = escape(item.files[0].url);
+            p
+                img(src=item.info.image_file)
+                a(href='../get?url='+url)= item.info.title_ru

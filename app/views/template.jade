@@ -8,8 +8,6 @@ html
             h1 My Site
         .container
             .main-content
-    for item in dataArray
-        p
-            a(href='list/'+item.id)= item.title_ru
+            block common-categories
     footer
         p Running on node with Express, Jade and Stylus

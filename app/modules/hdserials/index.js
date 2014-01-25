@@ -44,7 +44,7 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL, rqData, onRequestFinished);
+        RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
 
     }
 
@@ -55,18 +55,19 @@ module.exports = function (app) {
         console.log(page);
         var itemsPerPage = 20; //hardcoded
         var rqData = {
-            id: 'common-categories',
+            id: 'sub-categories',
             parent: id,
-            start: page * itemsPerPage
+            start: page * itemsPerPage + 1
         };
 
-        console.log("COMMON-CAT ID:" + rqData.parent);
+        console.log("SUB-CAT ID:" + rqData.parent);
+        console.log("SUB-CAT PAGE:" + rqData.start);
 
         REQ = req;
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL, rqData, onRequestFinished);
+        RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
 
     }
 
@@ -77,7 +78,7 @@ module.exports = function (app) {
         //also, timeout system needs to be implemented
         var rqData = {
             id: 'filter-videos',
-            category: category_id,
+            category: id,
             fresh: 1,
             start: 0,
             limit: 20
@@ -87,22 +88,38 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL, rqData, onRequestFinished);
+        RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
+    }
+
+
+    function itemHandler(req, res, next) {
+        var id = req.params.id;
+        var rqData = {
+            id: 'video',
+            video: id,
+        };
+
+        REQ = req;
+        RES = res;
+        NEXT = next;
+
+        RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
     }
 
     function onRequestFinished(error, response, body) {
-        if (response.statusCode == 200 && body) {
+        try {
             var resJSON = JSON.parse(body);
-
-            //doing whatever we need with the data
-
             //render it with JADE
-
-
-            RES.render('index',
+            //render the page with received view
+            RES.render(resJSON.id,
                 { dataArray: resJSON.data }
-            )
+            );
         }
+        catch (err) {
+            RES.end("Error happenned: " + err);
+        }
+
+
     }
 
 
@@ -114,6 +131,7 @@ module.exports = function (app) {
     //making paths
     app.get(PATH, start);
     app.get(PATH + '/list/:id', comdirHandler);
-    app.get(PATH + '/items/:id', subdirHandler);
+    app.get(PATH + '/sublist/:id', subdirHandler);
+    app.get(PATH + '/item/:id', itemHandler);
 
 }

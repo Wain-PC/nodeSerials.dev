@@ -28,15 +28,19 @@ function makeRequest(url, type, data, callback) {
         postRequestData = '?' + QS.stringify(data);
     }
 
-    var postRequestOptions = {
+    var requestOptions = {
         headers: {
             'User-Agent': USER_AGENT
         }
     };
 
     var onRequestFinished = function (error, response, body) {
-//        console.log("Got status code: " + response.statusCode);
+        console.log("Got status code: " + response.statusCode);
 //        console.log("Got headers: " + JSON.stringify(response.headers));
+        if (response.statusCode != 200) {
+            console.log("Request error, code " + response.statusCode);
+            return false;
+        }
         console.log("Got body: " + JSON.stringify(JSON.parse(body)));
         if (callback) {
             callback(error, response, body);
@@ -47,12 +51,12 @@ function makeRequest(url, type, data, callback) {
     switch (type) {
         case 'GET':
         {
-            NEEDLE.get(url + postRequestData, postRequestOptions, onRequestFinished);
+            NEEDLE.get(url + postRequestData, requestOptions, onRequestFinished);
             break;
         }
         case 'POST':
         {
-            NEEDLE.post(url + postRequestData, postRequestOptions, onRequestFinished);
+            NEEDLE.post(url + postRequestData, requestOptions, onRequestFinished);
             break;
         }
     }

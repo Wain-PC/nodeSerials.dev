@@ -91,12 +91,11 @@ module.exports = function (app) {
         RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
     }
 
-
     function itemHandler(req, res, next) {
         var id = req.params.id;
         var rqData = {
             id: 'video',
-            video: id,
+            video: id
         };
 
         REQ = req;
@@ -104,6 +103,20 @@ module.exports = function (app) {
         NEXT = next;
 
         RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
+    }
+
+    function videoHandler(req, res, next) {
+
+        REQ = req;
+        RES = res;
+        NEXT = next;
+
+        var url = req.query.url;
+        url = getVideoLink(url, function (url) {
+            RES.end("Video link:" + url);
+        });
+
+
     }
 
     function onRequestFinished(error, response, body) {
@@ -128,10 +141,66 @@ module.exports = function (app) {
     }
 
 
+    function getVideoLink(url, callback) {
+        var result_url = url,
+            fname, v;
+        if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
+            RQ.makeRequest(url, "GET", false, function (error, response, v) {
+                if (v.match('This video has been removed from public access.')) {
+                    result_url = v.match('This video has been removed from public access.');
+                    return result_url;
+                }
+                var video_host = v.match("var video_host = '(.+?)';")[1];
+                var video_uid = v.match("var video_uid = '(.*)'")[1];
+                var video_vtag = v.match("var video_vtag = '(.*)'")[1];
+                var video_no_flv = v.match("video_no_flv =(.*);")[1];
+                var video_max_hd = v.match("var video_max_hd = '(.*)'")[1];
+                if (video_no_flv == 1) {
+                    switch (video_max_hd) {
+                        case "0":
+                            fname = "240.mp4";
+                            break;
+                        case "1":
+                            vfname = "360.mp4";
+                            break;
+                        case "2":
+                            fname = "480.mp4";
+                            break;
+                        case "3":
+                            fname = "720.mp4";
+                            break;
+                    }
+                    result_url = video_host + "u" + video_uid + "/videos/" + video_vtag + "." + fname;
+                } else {
+                    var vkid = v.match("vkid=(.*)&" [1]);
+                    fname = "vk.flv";
+                    result_url = "http://" + video_host + "/assets/videos/" + video_vtag + vkid + "." + fname;
+                }
+                if (callback) callback(result_url);
+            });
+
+        }
+        //endif
+
+        else {
+            v = url.match("video\/(.*?)\/iframe")[1];
+            RQ.makeRequest('http://moonwalk.cc/sessions/create_session', "POST", {video_token: v}, function (error, response, resJSON) {
+                resJSON = JSON.parse(resJSON);
+                result_url = 'hls:' + resJSON.manifest_m3u8;
+                if (callback) callback(result_url);
+            });
+
+
+        }
+        //end else
+    }
+
+
     //making paths
     app.get(PATH, start);
     app.get(PATH + '/list/:id', comdirHandler);
     app.get(PATH + '/sublist/:id', subdirHandler);
     app.get(PATH + '/item/:id', itemHandler);
+    app.get(PATH + '/get', videoHandler);
 
 }

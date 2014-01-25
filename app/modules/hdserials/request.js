@@ -8,9 +8,20 @@
 var QS = require('querystring');
 var NEEDLE = require('needle');
 
-function makeRequest(url, data, callback) {
+function makeRequest(url, type, data, callback) {
     var USER_AGENT = 'Android;HD Serials v.1.7.0;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
 
+    switch (type) {
+        case 'GET':
+        case 'POST':
+        {
+            break;
+        }
+        default:
+        {
+            throw new Error("Wrong request type specified");
+        }
+    }
 
     var postRequestData = '';
     if (data) {
@@ -24,16 +35,27 @@ function makeRequest(url, data, callback) {
     };
 
     var onRequestFinished = function (error, response, body) {
-        console.log("Got status code: " + response.statusCode);
-        console.log("Got headers: " + JSON.stringify(response.headers));
+//        console.log("Got status code: " + response.statusCode);
+//        console.log("Got headers: " + JSON.stringify(response.headers));
         console.log("Got body: " + JSON.stringify(JSON.parse(body)));
         if (callback) {
             callback(error, response, body);
         }
     };
 
-    console.log('Sending request to: ' + url);
-    NEEDLE.get(url + postRequestData, postRequestOptions, onRequestFinished);
+    console.log('Sending ' + type + ' request to: ' + url);
+    switch (type) {
+        case 'GET':
+        {
+            NEEDLE.get(url + postRequestData, postRequestOptions, onRequestFinished);
+            break;
+        }
+        case 'POST':
+        {
+            NEEDLE.post(url + postRequestData, postRequestOptions, onRequestFinished);
+            break;
+        }
+    }
 }
 
 //exporting function

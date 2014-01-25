@@ -26,7 +26,7 @@ module.exports = function (app) {
     PATH = PATH + PREFIX;
     var REQ, RES, NEXT;
     var RQ = require('./request.js');
-    var BASE_URL = 'http://hdserials.galanov.net';
+    var BASE_URL = 'http://hdserials.galanov.net/backend/model.php';
 
 
     function trim(s) {
@@ -44,24 +44,29 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL + '/backend/model.php', rqData, onRequestFinished);
+        RQ.makeRequest(BASE_URL, rqData, onRequestFinished);
 
     }
 
 
     function comdirHandler(req, res, next) {
         var id = req.params.id;
+        var page = req.query.page || 0; //dirty hack
+        console.log(page);
+        var itemsPerPage = 20; //hardcoded
         var rqData = {
             id: 'common-categories',
             parent: id,
-            start: 1
+            start: page * itemsPerPage
         };
+
+        console.log("COMMON-CAT ID:" + rqData.parent);
 
         REQ = req;
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL + '/backend/model.php', rqData, onRequestFinished);
+        RQ.makeRequest(BASE_URL, rqData, onRequestFinished);
 
     }
 
@@ -82,7 +87,7 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL + '/backend/model.php', rqData, onRequestFinished);
+        RQ.makeRequest(BASE_URL, rqData, onRequestFinished);
     }
 
     function onRequestFinished(error, response, body) {
@@ -90,7 +95,13 @@ module.exports = function (app) {
             var resJSON = JSON.parse(body);
 
             //doing whatever we need with the data
-            RES.end(body);
+
+            //render it with JADE
+
+
+            RES.render('index',
+                { dataArray: resJSON.data }
+            )
         }
     }
 

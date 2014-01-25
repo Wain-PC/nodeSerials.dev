@@ -1,14 +1,15 @@
-//
-   Created with JetBrains WebStorm.
-   User: wain-_000
-   Date: 22.01.14
-   Time: 23:08
-   To change this template use File | Settings | File Templates.
-
-!!!5
+doctype html
 html
     head
-        body
-            p ---
-                each val, key in json
-                    p #{key}: #{val}
+        title #{title} - My Site
+        link(rel='stylesheet', href='/stylesheets/style.css')
+    body
+        header
+            h1 My Site
+        .container
+            .main-content
+    for item in dataArray
+        p
+            a(href='list/'+item.id)= item.title_ru
+    footer
+        p Running on node with Express, Jade and Stylus

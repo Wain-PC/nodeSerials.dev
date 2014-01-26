@@ -29,27 +29,26 @@ function makeRequest(url, type, data, callback, params) {
         postRequestData = '?' + QS.stringify(data);
     }
 
-    if(params) {
+    if (params) {
         requestOptions = params;
     }
     else {
         requestOptions = {
             headers: {
                 'User-Agent': USER_AGENT
-            }
+            },
+            follow: true
         };
     }
-
-
 
     var onRequestFinished = function (error, response, body) {
         console.log("Got status code: " + response.statusCode);
 //        console.log("Got headers: " + JSON.stringify(response.headers));
         if (response.statusCode != 200) {
             console.log("Request error, code " + response.statusCode);
-            return false;
+            throw new Error(response.statusCode);
         }
-        console.log("Got body: " + body);
+        //console.log("Got body: " + body);
         if (callback) {
             callback(error, response, body);
         }

@@ -182,7 +182,7 @@ module.exports = function (app) {
                 },
                 {
                     headers: {
-                        'User-Agent':'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'
+                        'User-Agent': 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'
                     }
                 });
 
@@ -191,6 +191,7 @@ module.exports = function (app) {
 
         else {
             v = url.match("video\/(.*?)\/iframe")[1];
+            console.log("VIdeo_token:" + v);
             RQ.makeRequest('http://moonwalk.cc/sessions/create_session', "POST", {video_token: v}, function (error, response, resJSON) {
                 resJSON = JSON.parse(resJSON);
                 result_url = 'hls:' + resJSON.manifest_m3u8;

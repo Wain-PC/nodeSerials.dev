@@ -9,7 +9,7 @@ var QS = require('querystring');
 var NEEDLE = require('needle');
 
 function makeRequest(url, type, data, callback, params) {
-    var USER_AGENT = 'Android;HD Serials v.1.7.0;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
+    var USER_AGENT = 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14';
     var requestOptions;
 
     switch (type) {
@@ -43,9 +43,10 @@ function makeRequest(url, type, data, callback, params) {
 
     var onRequestFinished = function (error, response, body) {
         console.log("Got status code: " + response.statusCode);
-//        console.log("Got headers: " + JSON.stringify(response.headers));
+        console.log("Got headers: " + JSON.stringify(response.headers));
         if (response.statusCode != 200) {
             console.log("Request error, code " + response.statusCode);
+            console.log("Response body:" + body);
             throw new Error(response.statusCode);
         }
         //console.log("Got body: " + body);

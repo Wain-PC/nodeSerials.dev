@@ -136,8 +136,10 @@ module.exports = function (app) {
     function getVideoLink(url, callback) {
         var result_url = url,
             fname, v;
-        if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
-            RQ.makeRequest(url, "GET", false, function (error, response, v) {
+        RQ.makeRequest(url, "GET", false, function (error, response, v) {
+
+                if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
+                    //vk.com video
                     if (v.match('This video has been removed from public access.')) {
                         result_url = v.match('This video has been removed from public access.');
                         return result_url;
@@ -179,28 +181,30 @@ module.exports = function (app) {
                         result_url = "http://" + video_host + "/assets/videos/" + video_vtag + vkid + "." + fname;
                     }
                     if (callback) callback(result_url);
-                },
-                {
-                    headers: {
-                        'User-Agent': 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'
-                    }
-                });
 
-        }
-        //endif
+                }
+                //endif
+                else {
+                    //hdserials video (moonwalk.cc load balancer)
+                    var video_token = /video_token: '(.+?)'/.exec(v)[1];
+                    var video_secret = /video_secret: '(.+?)'/.exec(v)[1];
+                    console.log("VIdeo_token:" + v);
+                    RQ.makeRequest('http://moonwalk.cc/sessions/create_session', "POST", {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
+                        resJSON = JSON.parse(resJSON);
+                        result_url = 'hls:' + resJSON.manifest_m3u8;
+                        if (callback) callback(result_url);
+                    });
 
-        else {
-            v = url.match("video\/(.*?)\/iframe")[1];
-            console.log("VIdeo_token:" + v);
-            RQ.makeRequest('http://moonwalk.cc/sessions/create_session', "POST", {video_token: v}, function (error, response, resJSON) {
-                resJSON = JSON.parse(resJSON);
-                result_url = 'hls:' + resJSON.manifest_m3u8;
-                if (callback) callback(result_url);
+
+                }
+                //end else
+
+            },
+            {
+                headers: {
+                    'User-Agent': 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'
+                }
             });
-
-
-        }
-        //end else
     }
 
 

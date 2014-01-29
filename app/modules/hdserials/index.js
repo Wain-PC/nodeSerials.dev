@@ -104,7 +104,7 @@ module.exports = function (app) {
         NEXT = next;
 
         var url = req.query.url;
-        url = getVideoLink(url, function (url) {
+        getVideoLink(url, function (url) {
             RES.end("Video link:" + url);
         });
 
@@ -135,7 +135,7 @@ module.exports = function (app) {
 
     function getVideoLink(url, callback) {
         var result_url = url,
-            fname, v;
+            fname;
         RQ.makeRequest(url, "GET", false, function (error, response, v) {
 
                 if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
@@ -165,7 +165,7 @@ module.exports = function (app) {
                                 fname = "240.mp4";
                                 break;
                             case "1":
-                                vfname = "360.mp4";
+                                fname = "360.mp4";
                                 break;
                             case "2":
                                 fname = "480.mp4";

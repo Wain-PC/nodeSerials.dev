@@ -103,7 +103,8 @@ module.exports = function (app) {
 
             //got the respond
             var re = /makePlayer\('([\S\s]{0,300})'\);/;
-            var dataArray = new Array();
+            var dataArray = [];
+            var replacing = '';
 
             var code = re.exec(respond);
             // ONLY ONE ITEM ON THE PAGE-----------------------------------------------------
@@ -113,9 +114,9 @@ module.exports = function (app) {
                 debug("CODE:" + code);
 
                 re = /code=code\.replace\(([\s\S]{0,300})\);/;
-                var replacing = re.exec(respond);
-                replacing = 'code.replace(' + replacing[1] + ');'
-                var videoURL = encodeURIComponent(code);
+                replacing = re.exec(respond);
+                replacing = 'code.replace(' + replacing[1] + ');';
+                videoURL = encodeURIComponent(code);
                 debug("VURL:" + videoURL);
                 dataArray.push({title: 'Sample', url: videoURL});
 
@@ -132,8 +133,8 @@ module.exports = function (app) {
 
 
                     re = /code=code\.replace\(([\s\S]{0,300})\);/;
-                    var replacing = re.exec(respond);
-                    replacing = 'code.replace(' + replacing[1] + ');'
+                    replacing = re.exec(respond);
+                    replacing = 'code.replace(' + replacing[1] + ');';
                     for (i = 0; i < videoList.length; i++) {
 
                         //playlist contains several seasons--------------------------------
@@ -149,7 +150,7 @@ module.exports = function (app) {
                         //it's a series (without seasons)---------------------------------
                         else {
                             videoURL = encodeURIComponent(videoList[i].file);
-                            debug("VURL:" + videoURL)
+                            debug("VURL:" + videoURL);
                             dataArray.push({title: videoList[i].comment, url: videoURL});
                         }
                     }
@@ -241,7 +242,7 @@ module.exports = function (app) {
 
     function getVideoLink(url, callback) {
         var result_url = url,
-            fname, v;
+            fname;
         RQ.makeRequest(url, "GET", false, function (error, response, v) {
 
                 if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
@@ -319,7 +320,7 @@ module.exports = function (app) {
 
         var re = /<h.? class="btl"><a href="([\S]*)"[\s\S]{0,300}.?>([\S\s]{0,300})<\/a><\/h.?>/g;
 
-        var items = new Array(),
+        var items = [],
             i = 0;
 
         var item = re.exec(respond);
@@ -361,7 +362,7 @@ module.exports = function (app) {
     //syntax sugar for compatibility
     function debug(msg) {
         console.log(msg);
-    };
+    }
 
     //setting paths
     app.get(PATH, genreList);
@@ -369,4 +370,4 @@ module.exports = function (app) {
     app.get(PATH + '/item/:url', moviePage);
     app.get(PATH + '/item/get/:url', getMovie);
 
-}
+};

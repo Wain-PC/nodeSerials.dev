@@ -64,11 +64,16 @@ module.exports = function (db) {
     //defining associations among models
     Series.hasMany('genre', {
         weight: {type: 'number'}
+    }, {
+        reverse: 'series'
     });
 
     Series.hasMany('posters', {
-        weight: {type: 'number'}
-    });
+            weight: {type: 'number'}
+        },
+        {
+            reverse: 'series'
+        });
 
     Season.hasOne('series', Series, {reverse: 'seasons'});
 

@@ -1,4 +1,4 @@
-function connect() {
+function connect(callback) {
 
     var orm = require('orm');
     var credits = {
@@ -19,8 +19,13 @@ function connect() {
         }
         else {
             // db is now available to use! ^__^
+            console.log("Database connection established successfully!");
             //time to define models
             var models = require('./models.js')(db);
+            //this is NOT async, so no callback required here
+            //models defined, queries can be done now
+            if (callback) callback(db);
+
         }
 
     });

@@ -1,6 +1,5 @@
 var express = require('express');
 var app = express();
-var router = require('./routes.js')(app);
 var database = require('./database/db.js');
 
 
@@ -15,13 +14,16 @@ app.use(express.logger('dev'));
 app.use(app.router);
 
 //initializing DB connection
-database.connect();
+database.connect(function (db) {
+    //after we have database connection, start the router
+    //it will, in turn, execute each app module
+    require('./routes.js')(app, db);
 
+    //after all. handle 404 error
+    console.log("404 listener add");
+    app.all("*", function (request, response) {
+        response.end("Page not found");
+    });
 
-//404 error
-console.log("404 listener add");
-app.all("*", function (request, response) {
-    response.end("Page not found");
+    app.listen(1337);
 });
-
-app.listen(1337);

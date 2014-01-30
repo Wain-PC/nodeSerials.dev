@@ -9,7 +9,7 @@
 var fs = require('fs');
 var util = require('util');
 
-module.exports = function (app) {
+module.exports = function (app, db) {
 
     var modulesFolder = 'modules';
     //modules routing
@@ -22,10 +22,9 @@ module.exports = function (app) {
         console.log("GOT " + file);
         //implying each directory is a valid module here
         var stat = fs.statSync(__dirname + '/' + modulesFolder + '/' + file);
-        console.log(util.inspect(stat));
         if (stat && stat.isDirectory()) {
             console.log("Loading module " + file);
-            require('./' + modulesFolder + '/' + file)(app);
+            require('./' + modulesFolder + '/' + file)(app, db);
         }
 
 

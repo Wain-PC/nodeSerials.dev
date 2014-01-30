@@ -7,9 +7,10 @@
 extends template
 block common-categories
 
+    textarea=rawData
+
     if dataArray.found
-        - item=dataArray;
-        - url = escape(item.files[0].url);
+        img(src=dataArray.info.image_file)
+        for item in dataArray.files
             p
-                img(src=item.info.image_file)
-                a(href='../get?url='+url)= item.info.title_ru
+                a(href='../get?url='+item.url)='S'+item.season+'E'+item.episode

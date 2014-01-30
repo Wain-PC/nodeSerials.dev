@@ -117,7 +117,7 @@ module.exports = function (app) {
             //render it with JADE
             //render the page with received view
             RES.render(resJSON.id,
-                { dataArray: resJSON.data }
+                { dataArray: resJSON.data, rawData: body }
             );
         }
         catch (err) {

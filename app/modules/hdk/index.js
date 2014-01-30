@@ -40,7 +40,7 @@ module.exports = function (app) {
             //RES.render('genreList', {dataArray: data});
 
             //disregard that, just output plain json
-            RES.json(data);
+            RES.json({"rootArray": data});
         };
 
         RQ.makeRequest(BASE_URL + '/catalog/', 'GET', false, noGenreCallback);

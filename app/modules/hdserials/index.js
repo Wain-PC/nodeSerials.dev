@@ -94,7 +94,7 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
+        RQ.makeRequest(BASE_URL, 'GET', rqData, parse);
     }
 
     function videoHandler(req, res, next) {
@@ -123,15 +123,12 @@ module.exports = function (app) {
         catch (err) {
             RES.end("Error happenned: " + err);
         }
-
-
     }
 
-
-    function getTimeDifference(startUnix, endUnix) {
-        return endUnix - startUnix; //in milliseconds
+    //simple middleware
+    function parse(error, response, body) {
+        RES.end(JSON.stringify(simpleParser(body)));
     }
-
 
     function getVideoLink(url, callback) {
         var result_url = url,
@@ -205,6 +202,98 @@ module.exports = function (app) {
                     'User-Agent': 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'
                 }
             });
+    }
+
+    function simpleParser(rawJSON) {
+        //  try {
+        var j = JSON.parse(rawJSON);
+        j = j.data;
+
+        if (!j.found) throw new Error('Item not found');
+        var series = {},
+            genre = [],
+            season = [],
+            people = [],
+            countries = [],
+            episodes = [],
+            videos = [];
+
+        series = {
+            title_en: j.info.title_en,
+            title_ru: j.info.title_ru,
+            year: j.info.year
+        };
+
+        var i, l;
+
+        //adding genres
+        l = j.genres.length;
+        for (i = 0; i < l; i++) {
+            genre.push({
+                genre: j.genres[i].title_ru,
+                genre_text: j.genres[i].title_ru
+            });
+        }
+
+        series.genre = genre;
+
+        //adding actors
+        l = j.actors.length;
+        for (i = 0; i < l; i++) {
+            people.push({
+                name: j.actors[i].title_ru
+            });
+            console.log("Creating person " + j.actors[i].title_ru);
+        }
+
+        //adding seasons
+        l = j.files.length;
+        var s = 0;
+        for (i = 0; i < l; i++) {
+            s = j.files[i].season;
+            if (!season[s]) {
+                //create season
+                console.log("Creating season " + s);
+                season[s] = {};
+                //create episode array
+                season[s].episode = new Array();
+            }
+        }
+
+        series.season = season;
+        console.log("Got " + series.season.length + " seasons!");
+
+        //adding episodes to seasons
+        var e = 0,
+            file;
+        l = j.files.length;
+        for (i = 0; i < l; i++) {
+            file = j.files[i];
+            s = file.season;
+            e = file.episode;
+            console.log("Creating episode " + e + " of season " + s);
+            series.season[s].episode[e] = {
+                title: file.title,
+                video: new Array()
+            };
+            series.season[s].episode[e].video.push({
+                title: file.title,
+                url: file.url,
+                type: file.type
+            });
+
+        }
+
+        return series;
+
+        /*}
+
+
+         catch (err) {
+         console.log('Parsing failed: ' + err);
+         return false;
+         }*/
+
     }
 
 

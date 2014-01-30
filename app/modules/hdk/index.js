@@ -37,7 +37,10 @@ module.exports = function (app) {
             }
 
             //render page with Jade
-            RES.render('genreList', {dataArray: data});
+            //RES.render('genreList', {dataArray: data});
+
+            //disregard that, just output plain json
+            RES.json(data);
         };
 
         RQ.makeRequest(BASE_URL + '/catalog/', 'GET', false, noGenreCallback);

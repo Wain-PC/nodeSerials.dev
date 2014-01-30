@@ -213,10 +213,7 @@ module.exports = function (app) {
         var series = {},
             genre = [],
             season = [],
-            people = [],
-            countries = [],
-            episodes = [],
-            videos = [];
+            people = [];
 
         series = {
             title_en: j.info.title_en,
@@ -256,7 +253,7 @@ module.exports = function (app) {
                 console.log("Creating season " + s);
                 season[s] = {};
                 //create episode array
-                season[s].episode = new Array();
+                season[s].episode = []
             }
         }
 
@@ -274,7 +271,7 @@ module.exports = function (app) {
             console.log("Creating episode " + e + " of season " + s);
             series.season[s].episode[e] = {
                 title: file.title,
-                video: new Array()
+                video: []
             };
             series.season[s].episode[e].video.push({
                 title: file.title,
@@ -304,4 +301,4 @@ module.exports = function (app) {
     app.get(PATH + '/item/:id', itemHandler);
     app.get(PATH + '/get', videoHandler);
 
-}
+};

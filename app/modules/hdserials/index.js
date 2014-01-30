@@ -26,6 +26,7 @@ module.exports = function (app) {
     PATH = PATH + PREFIX;
     var REQ, RES, NEXT;
     var RQ = require('./request.js');
+    var MS = require('../../external/myshows');
     var BASE_URL = 'http://hdserials.galanov.net/backend/model.php';
 
 
@@ -127,7 +128,22 @@ module.exports = function (app) {
 
     //simple middleware
     function parse(error, response, body) {
-        RES.end(JSON.stringify(simpleParser(body)));
+
+        var series = simpleParser(body);
+
+        if (series.title_en) {
+            console.log("Getting info from myshows.ru");
+            var ms = new MS();
+            ms.searchForShow(series.title_en, function (obj) {
+                console.log(JSON.stringify(obj));
+                RES.end(JSON.stringify(obj));
+            });
+        }
+        else {
+            console.log('NO en title of the show!');
+            RES.end('CANNNOT PARSE!');
+        }
+
     }
 
     function getVideoLink(url, callback) {
@@ -221,6 +237,8 @@ module.exports = function (app) {
             year: j.info.year
         };
 
+        console.log("EN TITLE:" + JSON.stringify(j.info));
+
         var i, l;
 
         //adding genres
@@ -268,7 +286,7 @@ module.exports = function (app) {
             file = j.files[i];
             s = file.season;
             e = file.episode;
-            console.log("Creating episode " + e + " of season " + s);
+            //console.log("Creating episode " + e + " of season " + s);
             series.season[s].episode[e] = {
                 title: file.title,
                 video: []
@@ -281,6 +299,7 @@ module.exports = function (app) {
 
         }
 
+        console.log("Returning series: " + series.title_en);
         return series;
 
         /*}

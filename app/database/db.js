@@ -21,8 +21,8 @@ function connect(callback) {
             // db is now available to use! ^__^
             console.log("Database connection established successfully!");
             //time to define models
-            var models = require('./models.js')(db);
             //this is NOT async, so no callback required here
+            var models = require('./models.js')(db);
             //models defined, queries can be done now
             if (callback) callback(db);
 

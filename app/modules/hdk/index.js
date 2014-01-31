@@ -5,7 +5,10 @@ module.exports = function (app) {
     var PREFIX = 'hdk';
     PATH = PATH + PREFIX;
     var REQ, RES, NEXT;
-    var RQ = require('./request.js');
+    var USER_AGENT = 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14';
+    var Request = require('../../util/request');
+    var RqGet = new Request(USER_AGENT, 'GET');
+    var RqPost = new Request(USER_AGENT, 'POST');
     var BASE_URL = 'http://hdkinoteatr.com';
 
     function genreList(req, res, next) {
@@ -43,7 +46,7 @@ module.exports = function (app) {
             RES.json({"rootArray": data});
         };
 
-        RQ.makeRequest(BASE_URL + '/catalog/', 'GET', false, noGenreCallback);
+        RqGet.makeRequest(BASE_URL + '/catalog/', false, noGenreCallback);
     }
 
     function moviesList(req, res, next) {
@@ -63,7 +66,7 @@ module.exports = function (app) {
                 //make request here
 
                 debug('L:' + BASE_URL + '/' + genre + '/page/' + pageNumber + '/');
-                RQ.makeRequest(BASE_URL + '/' + genre + '/page/' + pageNumber + '/', 'GET', false,
+                RqGet.makeRequest(BASE_URL + '/' + genre + '/page/' + pageNumber + '/', false,
                     function (error, response, body) {
                         var list = listScraper(body, true);
                         //render page with Jade
@@ -102,7 +105,7 @@ module.exports = function (app) {
 
 
         //get the respond
-        RQ.makeRequest(url, 'GET', false, function (error, response, respond) {
+        RqGet.makeRequest(url, false, function (error, response, respond) {
 
             //got the respond
             var re = /makePlayer\('([\S\s]{0,300})'\);/;
@@ -246,7 +249,7 @@ module.exports = function (app) {
     function getVideoLink(url, callback) {
         var result_url = url,
             fname;
-        RQ.makeRequest(url, "GET", false, function (error, response, v) {
+        RqGet.makeRequest(url, false, function (error, response, v) {
 
                 if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
                     //vk.com video
@@ -299,7 +302,7 @@ module.exports = function (app) {
                     var video_token = /video_token: '(.+?)'/.exec(v)[1];
                     var video_secret = /video_secret: '(.+?)'/.exec(v)[1];
                     console.log("VIdeo_token:" + v);
-                    RQ.makeRequest('http://moonwalk.cc/sessions/create_session', "POST", {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
+                    RqPost.makeRequest('http://moonwalk.cc/sessions/create_session', {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
                         resJSON = JSON.parse(resJSON);
                         result_url = 'hls:' + resJSON.manifest_m3u8;
                         if (callback) callback(result_url);

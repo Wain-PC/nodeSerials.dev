@@ -9,7 +9,10 @@
 
 function myShowsAPI() {
 
-    this.RQ = require('./request.js');
+    var Request = require('../../util/request');
+    var USER_AGENT = 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14';
+
+    this.RQ = new Request(USER_AGENT, 'GET');
     this.HOST = 'http://api.myshows.ru';
     this.RC = {
         HTTP: {

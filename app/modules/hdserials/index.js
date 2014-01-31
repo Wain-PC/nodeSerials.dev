@@ -25,7 +25,10 @@ module.exports = function (app) {
     var PREFIX = 'hdserials';
     PATH = PATH + PREFIX;
     var REQ, RES, NEXT;
-    var RQ = require('./request.js');
+    var Request = require('../../util/request');
+    var USER_AGENT = 'Android;HD Serials v.1.7.0;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
+    var RqGet = new Request(USER_AGENT, 'GET');
+    var RqPost = new Request(USER_AGENT, 'POST');
     var MS = require('../../external/myshows');
     var BASE_URL = 'http://hdserials.galanov.net/backend/model.php';
 
@@ -37,7 +40,7 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
+        RqGet.makeRequest(BASE_URL, rqData, onRequestFinished);
 
     }
 
@@ -60,7 +63,7 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
+        RqGet.makeRequest(BASE_URL, rqData, onRequestFinished);
 
     }
 
@@ -81,7 +84,7 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL, 'GET', rqData, onRequestFinished);
+        RqGet.makeRequest(BASE_URL, rqData, onRequestFinished);
     }
 
     function itemHandler(req, res, next) {
@@ -95,7 +98,7 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RQ.makeRequest(BASE_URL, 'GET', rqData, parse);
+        RqGet.makeRequest(BASE_URL, rqData, parse);
     }
 
     function videoHandler(req, res, next) {
@@ -134,14 +137,21 @@ module.exports = function (app) {
         if (series.title_en) {
             console.log("Getting info from myshows.ru");
             var ms = new MS();
-            ms.searchForShow(series.title_en, function (obj) {
-                console.log(JSON.stringify(obj));
-                RES.end(JSON.stringify(obj));
-            });
+            try {
+                ms.searchForShow(series.title_en, function (obj) {
+                    console.log(JSON.stringify(obj));
+                    RES.end(JSON.stringify(obj));
+                });
+            }
+            catch (err) {
+                console.log('Cannot parse!:' + error);
+                RES.end(JSON.stringify(series));
+            }
+
         }
         else {
             console.log('NO en title of the show!');
-            RES.end('CANNNOT PARSE!');
+            RES.end(JSON.stringify(series));
         }
 
     }
@@ -149,7 +159,7 @@ module.exports = function (app) {
     function getVideoLink(url, callback) {
         var result_url = url,
             fname;
-        RQ.makeRequest(url, "GET", false, function (error, response, v) {
+        RqGet.makeRequest(url, false, function (error, response, v) {
 
                 if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
                     //vk.com video
@@ -202,7 +212,7 @@ module.exports = function (app) {
                     var video_token = /video_token: '(.+?)'/.exec(v)[1];
                     var video_secret = /video_secret: '(.+?)'/.exec(v)[1];
                     console.log("VIdeo_token:" + v);
-                    RQ.makeRequest('http://moonwalk.cc/sessions/create_session', "POST", {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
+                    RqPost.makeRequest('http://moonwalk.cc/sessions/create_session', {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
                         resJSON = JSON.parse(resJSON);
                         result_url = 'hls:' + resJSON.manifest_m3u8;
                         if (callback) callback(result_url);

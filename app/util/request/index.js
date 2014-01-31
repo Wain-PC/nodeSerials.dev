@@ -8,9 +8,16 @@
 var QS = require('querystring');
 var NEEDLE = require('needle');
 
-function makeRequest(url, type, data, callback, params) {
-    var USER_AGENT = 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14';
+function Request(userAgent, type) {
+    this.USER_AGENT = userAgent;
+    this.TYPE = type;
+}
+
+Request.prototype.makeRequest = function (url, data, callback, params) {
+    var _this = this;
+    var USER_AGENT = _this.USER_AGENT;
     var requestOptions;
+    var type = _this.TYPE;
 
     switch (type) {
         case 'GET':
@@ -42,9 +49,6 @@ function makeRequest(url, type, data, callback, params) {
     }
 
     var onRequestFinished = function (error, response, body) {
-        if (error) {
-            throw new Error(error.message);
-        }
         console.log("Got status code: " + response.statusCode);
         console.log("Got headers: " + JSON.stringify(response.headers));
         if (response.statusCode != 200) {
@@ -71,7 +75,7 @@ function makeRequest(url, type, data, callback, params) {
             break;
         }
     }
-}
+};
 
 //exporting function
-exports.makeRequest = makeRequest;
+module.exports = Request;

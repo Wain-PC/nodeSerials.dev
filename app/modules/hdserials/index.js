@@ -29,8 +29,10 @@ module.exports = function (app) {
     var USER_AGENT = 'Android;HD Serials v.1.7.0;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
     var RqGet = new Request(USER_AGENT, 'GET');
     var RqPost = new Request(USER_AGENT, 'POST');
-    var MS = require('../../external/myshows');
     var BASE_URL = 'http://hdserials.galanov.net/backend/model.php';
+    //parser
+    var Parser = require('./parser.js');
+    Parser = new Parser();
 
 
     function start(req, res, next) {
@@ -132,27 +134,9 @@ module.exports = function (app) {
     //simple middleware
     function parse(error, response, body) {
 
-        var series = simpleParser(body);
+        var series = Parser.parse(body);
+        RES.end(JSON.stringify(series));
 
-        if (series.title_en) {
-            console.log("Getting info from myshows.ru");
-            var ms = new MS();
-            try {
-                ms.searchForShow(series.title_en, function (obj) {
-                    console.log(JSON.stringify(obj));
-                    RES.end(JSON.stringify(obj));
-                });
-            }
-            catch (err) {
-                console.log('Cannot parse!:' + error);
-                RES.end(JSON.stringify(series));
-            }
-
-        }
-        else {
-            console.log('NO en title of the show!');
-            RES.end(JSON.stringify(series));
-        }
 
     }
 
@@ -228,98 +212,6 @@ module.exports = function (app) {
                     'User-Agent': 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'
                 }
             });
-    }
-
-    function simpleParser(rawJSON) {
-        //  try {
-        var j = JSON.parse(rawJSON);
-        j = j.data;
-
-        if (!j.found) throw new Error('Item not found');
-        var series = {},
-            genre = [],
-            season = [],
-            people = [];
-
-        series = {
-            title_en: j.info.title_en,
-            title_ru: j.info.title_ru,
-            year: j.info.year
-        };
-
-        console.log("EN TITLE:" + JSON.stringify(j.info));
-
-        var i, l;
-
-        //adding genres
-        l = j.genres.length;
-        for (i = 0; i < l; i++) {
-            genre.push({
-                genre: j.genres[i].title_ru,
-                genre_text: j.genres[i].title_ru
-            });
-        }
-
-        series.genre = genre;
-
-        //adding actors
-        l = j.actors.length;
-        for (i = 0; i < l; i++) {
-            people.push({
-                name: j.actors[i].title_ru
-            });
-            console.log("Creating person " + j.actors[i].title_ru);
-        }
-
-        //adding seasons
-        l = j.files.length;
-        var s = 0;
-        for (i = 0; i < l; i++) {
-            s = j.files[i].season;
-            if (!season[s]) {
-                //create season
-                console.log("Creating season " + s);
-                season[s] = {};
-                //create episode array
-                season[s].episode = []
-            }
-        }
-
-        series.season = season;
-        console.log("Got " + series.season.length + " seasons!");
-
-        //adding episodes to seasons
-        var e = 0,
-            file;
-        l = j.files.length;
-        for (i = 0; i < l; i++) {
-            file = j.files[i];
-            s = file.season;
-            e = file.episode;
-            //console.log("Creating episode " + e + " of season " + s);
-            series.season[s].episode[e] = {
-                title: file.title,
-                video: []
-            };
-            series.season[s].episode[e].video.push({
-                title: file.title,
-                url: file.url,
-                type: file.type
-            });
-
-        }
-
-        console.log("Returning series: " + series.title_en);
-        return series;
-
-        /*}
-
-
-         catch (err) {
-         console.log('Parsing failed: ' + err);
-         return false;
-         }*/
-
     }
 
 

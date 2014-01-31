@@ -14,6 +14,7 @@ function myShowsAPI() {
 
     this.RQ = new Request(USER_AGENT, 'GET');
     this.HOST = 'http://api.myshows.ru';
+    this.show = {};
     this.RC = {
         HTTP: {
             OK: 200,
@@ -57,19 +58,47 @@ function myShowsAPI() {
     };
 
 
-    this.searchForShow = function (show, callback) {
-        console.log(this.HOST);
-        var rqString = this.HOST + this.SCHEME.public.search_show + encodeURIComponent(show);
-        var _this = this;
-        this.RQ.makeRequest(rqString, "GET", false, function (error, response, body) {
-            if (response.statusCode === _this.RC.HTTP.OK) {
-                if (callback) callback(JSON.parse(body));
+    this.show.searchForShow = function (showTitle, callback) {
+        try {
+            var _this = this;
+            console.log("HOST:" + _this.HOST);
+            var rqString = _this.HOST + _this.SCHEME.public.search_show + encodeURIComponent(showTitle);
+            console.log("Going for:" + rqString);
+
+            this.RQ.makeRequest(rqString, "GET", false, function (error, response, body) {
+                if (response.statusCode === _this.RC.HTTP.OK) {
+                    console.log("Response OK");
+                    _this.show.toUniversal(JSON.parse(body));
+                    if (callback) callback(JSON.parse(body));
+                }
+                else if (response.statusCode === _this.RC.HTTP.NotFound) {
+                    console.log("Item not found in MS database");
+                    if (callback) callback(_this.RC.HTTP.NotFound);
+                }
+            });
+        }
+        catch (err) {
+            //some error happened
+            callback("ERR:" + err);
+        }
+    }.bind(this);
+
+
+    this.show.toUniversal = function (obj) {
+
+        //iterating over incoming object
+        for (var id in obj) {
+            console.log("iterating over incoming object");
+            var series = obj[id];
+            for (var prop in series) {
+                // important check that this is objects own property
+                // not from prototype prop inherited
+                if (series.hasOwnProperty(prop)) {
+                    console.log(prop + " = " + series[prop]);
+                }
             }
-            else if (response.statusCode === _this.RC.HTTP.NotFound) {
-                console.log("Item not found");
-                if (callback) callback(_this.RC.HTTP.NotFound);
-            }
-        });
+        }
+
 
     }
 
@@ -81,7 +110,7 @@ function myShowsAPI() {
                 if (callback) callback(JSON.parse(body));
             }
         });
-    }
+    }.bind(this);
 
 }
 

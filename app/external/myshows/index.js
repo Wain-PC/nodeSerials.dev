@@ -58,9 +58,23 @@ function myShowsAPI() {
     };
 
 
-    this.show.searchForShow = function (showTitle, callback) {
+    this.show.searchForShow = function (series, callback) {
         try {
             var _this = this;
+            var showTitle;
+            if (series.title_en) {
+                console.log("Got en title!");
+                showTitle = series.title_en;
+            }
+            else if (series.title_ru) {
+                console.log("Got RU title!");
+                showTitle = series.title_ru;
+            }
+            if (!showTitle) {
+                console.log("Sorry, cannot parse empty title");
+                return false;
+            }
+
             console.log("HOST:" + _this.HOST);
             var rqString = _this.HOST + _this.SCHEME.public.search_show + encodeURIComponent(showTitle);
             console.log("Going for:" + rqString);
@@ -68,7 +82,7 @@ function myShowsAPI() {
             this.RQ.makeRequest(rqString, "GET", false, function (error, response, body) {
                 if (response.statusCode === _this.RC.HTTP.OK) {
                     console.log("Response OK");
-                    _this.show.toUniversal(JSON.parse(body));
+                    obj = _this.show.toUniversal(JSON.parse(body), series);
                     if (callback) callback(JSON.parse(body));
                 }
                 else if (response.statusCode === _this.RC.HTTP.NotFound) {
@@ -84,23 +98,65 @@ function myShowsAPI() {
     }.bind(this);
 
 
-    this.show.toUniversal = function (obj) {
-
+    this.show.toUniversal = function (obj, series) {
+        var mss,
+            counter = 0,
+            titleFound = false;
         //iterating over incoming object
+        series.season = null; //REMOVE THIS!!!
+        console.log(JSON.stringify(series));
         for (var id in obj) {
+            counter++;
             console.log("iterating over incoming object");
-            var series = obj[id];
-            for (var prop in series) {
-                // important check that this is objects own property
-                // not from prototype prop inherited
-                if (series.hasOwnProperty(prop)) {
-                    console.log(prop + " = " + series[prop]);
+            //obj is our Series object
+            //mss is MyShows Series object
+            mss = obj[id];
+            console.log(JSON.stringify(mss));
+
+            console.log("KPIDS Challenge:" + series.kpid + " " + mss.kinopoiskId + " " + (series.kpid == mss.kinopoiskId));
+            if (((series.imdbid || mss.imdbid) && (series.imdbid == mss.imdbid)) || ((series.kpid || mss.kinopoiskId) && (series.kpid == mss.kinopoiskId)) || ((series.tvrageid || mss.tvrageid) && (series.tvrageid == mss.tvrageid))) {
+                //same title 100%
+                console.log("Item found by ID");
+                titleFound = true;
+                series.title = mss.title;
+                if (mss.ruTitle) series.title_ru = mss.ruTitle;
+                series.status = mss.status;
+                series.kpid = mss.kinopoiskId;
+                series.tvrageId = mss.tvrageId;
+                series.imdbid = mss.imdbid;
+            }
+
+            else if (mss.title == series.title_en || ((mss.ruTitle || series.title_ru) && (mss.ruTitle === series.title_ru))) { //EXTREMELY fat comparison
+                //assuming it's what we need
+                console.log("Item found by title (probably)");
+                titleFound = true;
+                //additional check using year
+                console.log(series.year + " vs " + mss.year);
+                if ((series.year || mss.year) && (series.year == mss.year)) {
+                    console.log("Year matches!");
+                    titleFound = true;
                 }
+                series.title = mss.title;
+                if (mss.ruTitle) series.title_ru = mss.ruTitle;
+                series.status = mss.status;
+                series.kpid = mss.kinopoiskId;
+                series.tvrageId = mss.tvrageId;
+                series.imdbid = mss.imdbid;
+            }
+
+
+            if (titleFound) {
+                console.log("Title found and updated successfully from the total of " + counter + " tries");
+                return series;
             }
         }
+        //title not found
+        //let's check it out
+        console.log(JSON.stringify(obj));
+        return series;
 
 
-    }
+    };
 
     this.getGenres = function (callback) {
         var rqString = this.HOST + this.SCHEME.public.genres;

@@ -11,23 +11,11 @@ HDSerialsParser.prototype.parse = function (json) {
         var series = simpleParser(json);
 
         //try to parse with MyShowsParser
-        var title;
-        if (series.title_en) {
-            console.log("Got en title!");
-            title = series.title_en;
-        }
-        else if (series.title_ru) {
-            console.log("Got RU title!");
-            title = series.title_ru;
-        }
-        if (title) {
-            console.log("Searching for show on MyShows");
-            console.log(typeof(_this.myShowsParser.show.searchForShow));
-            _this.myShowsParser.show.searchForShow(title, function (obj) {
-                if (typeof(obj) != 'object') return false;
-                return series;
-            });
-        }
+        console.log("Searching for show on MyShows");
+        _this.myShowsParser.show.searchForShow(series, function (obj) {
+            if (typeof(obj) != 'object') return false;
+            return series;
+        });
     }
     catch (err) {
         return false;
@@ -48,8 +36,21 @@ function simpleParser(rawJSON) {
     series = {
         title_en: j.info.title_en,
         title_ru: j.info.title_ru,
-        year: j.info.year
+        year: j.info.year,
+        kpid: j.info.kp_id,
+        description: j.info.description
     };
+
+    //adding poster
+    var reImage = /^.*(\.jpg)$/i;
+    var poster = reImage.exec(j.info.image_file);
+    if (poster) {
+        console.log("Poster found: " + j.info.image_file);
+        series.poster = [j.info.image_file];
+    }
+    else {
+        console.log("Poster NOT found: " + j.info.image_file);
+    }
 
     console.log("EN TITLE:" + JSON.stringify(j.info));
 
@@ -114,7 +115,7 @@ function simpleParser(rawJSON) {
         //what to do if you don't know the season?!
 
 
-        console.log("Creating episode " + e + " of season " + s + " : " + file.title);
+        //console.log("Creating episode " + e + " of season " + s + " : " + file.title);
         series.season[s].episode[e] = {
             title: file.title,
             video: []

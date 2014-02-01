@@ -32,7 +32,7 @@ module.exports = function (app) {
                 debug("M:" + menu);
                 //menu[1] is href, menu[2] is title
                 data.push({
-                    url: menu[1],
+                    url: 'genre/' + menu[1],
                     title: menu[2]
                 });
                 //getting next menu item
@@ -70,7 +70,9 @@ module.exports = function (app) {
                     function (error, response, body) {
                         var list = listScraper(body, true);
                         //render page with Jade
-                        RES.render('moviesList', {dataArray: list});
+                        //RES.render('moviesList', {dataArray: list});
+                        //disregard that, just output plain json
+                        RES.json({"rootArray": list});
                     });
             } catch (err) {
                 //end of pages
@@ -109,8 +111,9 @@ module.exports = function (app) {
 
             //got the respond
             var re = /makePlayer\('([\S\s]{0,300})'\);/;
-            var dataArray = [];
-            var replacing = '';
+            var dataArray = [],
+                videoURL,
+                replacing = '';
 
             var code = re.exec(respond);
             // ONLY ONE ITEM ON THE PAGE-----------------------------------------------------
@@ -121,10 +124,12 @@ module.exports = function (app) {
 
                 re = /code=code\.replace\(([\s\S]{0,300})\);/;
                 replacing = re.exec(respond);
+                console.log("Replacing length:" + replacing.length);
                 replacing = 'code.replace(' + replacing[1] + ');';
+                replacing = encodeURIComponent(replacing);
                 videoURL = encodeURIComponent(code);
                 debug("VURL:" + videoURL);
-                dataArray.push({title: 'Sample', url: videoURL});
+                dataArray.push({title: 'Sample', url: 'item/get/' + videoURL + '?replacer=' + replacing});
 
             }
             // END ONE ITEM---------------------------------------
@@ -138,9 +143,11 @@ module.exports = function (app) {
                     videoList = eval('[{' + videoList[1] + '}]');
 
 
-                    re = /code=code\.replace\(([\s\S]{0,300})\);/;
+                    re = /code=code\.replace\(([\s\S]{0,500})\);/;
                     replacing = re.exec(respond);
+                    console.log("Replacing length:" + replacing.length);
                     replacing = 'code.replace(' + replacing[1] + ');';
+                    replacing = encodeURIComponent(replacing);
                     for (i = 0; i < videoList.length; i++) {
 
                         //playlist contains several seasons--------------------------------
@@ -149,7 +156,7 @@ module.exports = function (app) {
                             //looping through series in a season
                             for (j = 0; j < videoList[i].playlist.length; j++) {
                                 videoURL = encodeURIComponent(videoList[i].playlist[j].file);
-                                dataArray.push({title: videoList[i].playlist[j].comment, url: videoURL});
+                                dataArray.push({title: videoList[i].playlist[j].comment, url: 'item/get/' + videoURL + '?replacer=' + replacing});
                             }
                         }
 
@@ -157,7 +164,7 @@ module.exports = function (app) {
                         else {
                             videoURL = encodeURIComponent(videoList[i].file);
                             debug("VURL:" + videoURL);
-                            dataArray.push({title: videoList[i].comment, url: videoURL});
+                            dataArray.push({title: videoList[i].comment, url: 'item/get/' + videoURL + '?replacer=' + replacing});
                         }
                     }
                     //end of cycle
@@ -165,7 +172,8 @@ module.exports = function (app) {
             }
             //render the data array
             debug("REPLACING:" + replacing);
-            RES.render('moviePage', {dataArray: dataArray, replacer: encodeURIComponent(replacing)});
+            //RES.render('moviePage', {dataArray: dataArray, replacer: replacing});
+            RES.json({'rootArray': dataArray});
         });
     }
 
@@ -184,7 +192,8 @@ module.exports = function (app) {
                 return false;
             }
 
-            RES.end("Got VURL:" + video);
+            //RES.end("Got VURL:" + video);
+            RES.json({'videoURL': video});
         });
 
 
@@ -278,7 +287,7 @@ module.exports = function (app) {
                                 fname = "240.mp4";
                                 break;
                             case "1":
-                                vfname = "360.mp4";
+                                fname = "360.mp4";
                                 break;
                             case "2":
                                 fname = "480.mp4";
@@ -339,7 +348,7 @@ module.exports = function (app) {
                 debug("URL:" + item[1]);
             }
             items.push({
-                url: item[1],
+                url: 'item/' + item[1],
                 title: item[2]
             });
             item = re.exec(respond);

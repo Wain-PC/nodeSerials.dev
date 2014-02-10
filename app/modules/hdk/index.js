@@ -21,7 +21,7 @@ module.exports = function (app) {
         debug(BASE_URL + '/catalog/');
 
         var noGenreCallback = function (error, response, respond) {
-
+            console.log("Main page load");
             var re = /<ul class="cats">([\s\S]*)<\/ul>/; //finding menu
             var menuHTML = respond.match(re)[1];
 
@@ -29,7 +29,6 @@ module.exports = function (app) {
             var menu = re.exec(menuHTML);
             var data = new Array;
             while (menu) {
-                debug("M:" + menu);
                 //menu[1] is href, menu[2] is title
                 data.push({
                     url: 'genre/' + menu[1],

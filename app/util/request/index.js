@@ -27,7 +27,9 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
         }
         default:
         {
-            throw new Error("Wrong request type specified");
+            //throw new Error("Wrong request type specified");
+            console.log("Wrong request type specified");
+            callback();
         }
     }
 
@@ -53,8 +55,7 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
         //console.log("Got headers: " + JSON.stringify(response.headers));
         if (response.statusCode != 200) {
             console.log("Request error, code " + response.statusCode);
-            //console.log("Response body:" + body);
-            throw new Error(response.statusCode);
+            //throw new Error(response.statusCode);
         }
         //console.log("Got body: " + body);
         if (callback) {

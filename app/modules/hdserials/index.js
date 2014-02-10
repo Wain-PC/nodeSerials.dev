@@ -133,8 +133,9 @@ module.exports = function (app) {
     //simple middleware
     function parse(error, response, body) {
 
-        var series = Parser.parse(body);
-        RES.end(JSON.stringify(series));
+        var series = Parser.parse(body, function (series) {
+            RES.end(JSON.stringify(series));
+        });
 
 
     }

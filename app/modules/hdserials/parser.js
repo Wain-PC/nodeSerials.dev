@@ -5,20 +5,24 @@ var HDSerialsParser = function () {
 };
 
 
-HDSerialsParser.prototype.parse = function (json) {
+HDSerialsParser.prototype.parse = function (json, callback) {
     try {
         var _this = this;
         var series = simpleParser(json);
-
         //try to parse with MyShowsParser
         console.log("Searching for show on MyShows");
         _this.myShowsParser.show.searchForShow(series, function (obj) {
-            if (typeof(obj) != 'object') return false;
-            return series;
+            //TODO:can we just return whatever received?
+            if (typeof(obj) != 'object' && callback) {
+                callback(series);
+            }
+            else if (callback && obj) {
+                callback(obj);
+            }
         });
     }
     catch (err) {
-        return false;
+        console.log("Error happenned while parsing!:" + err.message);
     }
 };
 
@@ -50,6 +54,7 @@ function simpleParser(rawJSON) {
     }
     else {
         console.log("Poster NOT found: " + j.info.image_file);
+        //series.poster is undefined
     }
 
     console.log("EN TITLE:" + JSON.stringify(j.info));
@@ -86,7 +91,7 @@ function simpleParser(rawJSON) {
             console.log("Creating season " + s);
             season[s] = {};
             //create episode array
-            season[s].episode = []
+            season[s].episode = [];
         }
     }
 
@@ -103,6 +108,15 @@ function simpleParser(rawJSON) {
         e = file.episode;
 
         //wrong season or episode number provided, try to search title
+        var reSeason = /Серия.?(\d+)/i;
+        var se = reSeason.exec(file.title);
+        if (se) e = se[1];
+        else {
+            reSeason = /(\d+).?Серия/i;
+            se = reSeason.exec(file.title);
+            if (se) s = se[1];
+        }
+
         var reEpisode = /Серия.?(\d+)/i;
         var ep = reEpisode.exec(file.title);
         if (ep) e = ep[1];
@@ -111,7 +125,7 @@ function simpleParser(rawJSON) {
             ep = reEpisode.exec(file.title);
             if (ep) e = ep[1];
         }
-
+        console.log("SEASON:" + s + " EPISODE:" + e);
         //what to do if you don't know the season?!
 
 
@@ -127,8 +141,6 @@ function simpleParser(rawJSON) {
         });
 
     }
-
-    console.log("Returning series: " + series.title_en);
     return series;
 
 }

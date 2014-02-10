@@ -119,9 +119,6 @@ module.exports = function (app) {
             // ONLY ONE ITEM ON THE PAGE-----------------------------------------------------
             if (code) {
                 code = code[1];
-
-                debug("CODE:" + code);
-
                 re = /code=code\.replace\(([\s\S]{0,300})\);/;
                 replacing = re.exec(respond);
                 console.log("Replacing length:" + replacing.length);
@@ -139,7 +136,6 @@ module.exports = function (app) {
                 re = /var vkArr=\[\{([\s\S]*)\}\];/;
                 var videoList = re.exec(respond);
                 if (videoList) {
-                    debug("VL:" + videoList);
                     videoList = eval('[{' + videoList[1] + '}]');
 
 
@@ -171,7 +167,6 @@ module.exports = function (app) {
                 }
             }
             //render the data array
-            debug("REPLACING:" + replacing);
             //RES.render('moviePage', {dataArray: dataArray, replacer: replacing});
             RES.json({'rootArray': dataArray});
         });
@@ -203,9 +198,7 @@ module.exports = function (app) {
         var video_url = false;
 
         if (code.search(/^oid=/) != -1) {
-            debug("BEFORE:" + code);
             code = eval(replacing);
-            debug("AFTER:" + code);
             video_url = 'http://vk.com/video_ext.php?' + code;
 
             //this CAN be empty (false returned if the video is not available)
@@ -345,7 +338,6 @@ module.exports = function (app) {
 
             if (encodeURL) {
                 item[1] = encodeURIComponent(item[1]);
-                debug("URL:" + item[1]);
             }
             items.push({
                 url: 'item/' + item[1],
@@ -359,7 +351,6 @@ module.exports = function (app) {
         item = re.exec(respond);
 
         while (item) {
-            debug(item[1]);
             items[i].image = item[1];
             i++;
 

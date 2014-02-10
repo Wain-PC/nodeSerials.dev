@@ -15,6 +15,8 @@ function myShowsAPI() {
     this.RQ = new Request(USER_AGENT, 'GET');
     this.HOST = 'http://api.myshows.ru';
     this.show = {};
+    this.util = {};
+    this.objectMerger = require('../../util/merge');
     this.RC = {
         HTTP: {
             OK: 200,
@@ -62,6 +64,11 @@ function myShowsAPI() {
         try {
             var _this = this;
             var showTitle;
+
+            //add merge ability to the series
+            series.merge = _this.objectMerger;
+            console.log("Search started!");
+
             if (series.title_en) {
                 console.log("Got en title!");
                 showTitle = series.title_en;
@@ -70,7 +77,7 @@ function myShowsAPI() {
                 console.log("Got RU title!");
                 showTitle = series.title_ru;
             }
-            if (!showTitle) {
+            else {
                 console.log("Sorry, cannot parse empty title");
                 return false;
             }
@@ -82,7 +89,7 @@ function myShowsAPI() {
             this.RQ.makeRequest(rqString, "GET", false, function (error, response, body) {
                 if (response.statusCode === _this.RC.HTTP.OK) {
                     console.log("Response OK");
-                    obj = _this.show.toUniversal(JSON.parse(body), series);
+                    obj = _this.util.toUniversal(_this, JSON.parse(body), series);
                     if (callback) callback(JSON.parse(body));
                 }
                 else if (response.statusCode === _this.RC.HTTP.NotFound) {
@@ -98,7 +105,7 @@ function myShowsAPI() {
     }.bind(this);
 
 
-    this.show.toUniversal = function (obj, series) {
+    this.util.toUniversal = function (_this, obj, series) {
         var mss,
             counter = 0,
             titleFound = false;
@@ -114,41 +121,29 @@ function myShowsAPI() {
             console.log(JSON.stringify(mss));
 
             console.log("KPIDS Challenge:" + series.kpid + " " + mss.kinopoiskId + " " + (series.kpid == mss.kinopoiskId));
-            if (((series.imdbid || mss.imdbid) && (series.imdbid == mss.imdbid)) || ((series.kpid || mss.kinopoiskId) && (series.kpid == mss.kinopoiskId)) || ((series.tvrageid || mss.tvrageid) && (series.tvrageid == mss.tvrageid))) {
-                //same title 100%
+            if (_this.util.compare(series.imdbid, mss.imdbid, series.kpid, mss.kinopoiskId, series.tvrageid, mss.tvrageid)) {
                 console.log("Item found by ID");
                 titleFound = true;
-                series.title = mss.title;
-                if (mss.ruTitle) series.title_ru = mss.ruTitle;
-                series.status = mss.status;
-                series.kpid = mss.kinopoiskId;
-                series.tvrageId = mss.tvrageId;
-                series.imdbid = mss.imdbid;
+                //breaking here because matching ids are the guarantee of the success
+                break;
             }
 
-            else if (mss.title == series.title_en || ((mss.ruTitle || series.title_ru) && (mss.ruTitle === series.title_ru))) { //EXTREMELY fat comparison
+            else if (_this.util.compare(series.title_en, mss.title, series.title_ru, mss.ruTitle)) {
                 //assuming it's what we need
                 console.log("Item found by title (probably)");
                 titleFound = true;
                 //additional check using year
                 console.log(series.year + " vs " + mss.year);
-                if ((series.year || mss.year) && (series.year == mss.year)) {
+                if (_this.util.compare(series.year, mss.year)) {
                     console.log("Year matches!");
-                    titleFound = true;
                 }
-                series.title = mss.title;
-                if (mss.ruTitle) series.title_ru = mss.ruTitle;
-                series.status = mss.status;
-                series.kpid = mss.kinopoiskId;
-                series.tvrageId = mss.tvrageId;
-                series.imdbid = mss.imdbid;
             }
+        }
 
-
-            if (titleFound) {
-                console.log("Title found and updated successfully from the total of " + counter + " tries");
-                return series;
-            }
+        if (titleFound) {
+            console.log("Title found and updated successfully from the total of " + counter + " tries");
+            series.merge(_this.util.extractNeededData(mss));
+            return series;
         }
         //title not found
         //let's check it out
@@ -167,6 +162,47 @@ function myShowsAPI() {
             }
         });
     }.bind(this);
+
+    this.util.extractNeededData = function (mss) {
+        var series = {};
+        series.title = mss.title;
+        if (mss.ruTitle) series.title_ru = mss.ruTitle;
+        series.status = mss.status;
+        series.kpid = mss.kinopoiskId;
+        series.tvrageId = mss.tvrageId;
+        series.imdbid = mss.imdbid;
+        return series;
+    }
+
+    this.util.compare = function () {
+        var a = arguments,
+            l = a.length,
+            a1, a2,
+            counter = 0;
+        var mode = {
+            and: 'AND',
+            or: 'OR'
+        };
+
+        if (!l || l % 2) {
+            console.log("Cannot compare args, no args or number not even");
+            return false;
+        }
+
+        for (var i = 0; i < l; i += 2) {
+            a1 = a[i];
+            a2 = a[i + 1];
+            if ((a1 || a2) && (a1 == a2)) {
+                counter++;
+            }
+        }
+        //AND mode: all comparisons were successful
+        //if(counter == l/2) return true;
+
+        //OR mode (default): at least 1 comparison was successful
+        if (counter) return true;
+        return false;
+    }
 
 }
 

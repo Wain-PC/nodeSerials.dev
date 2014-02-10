@@ -64,9 +64,11 @@ module.exports = function (app) {
                 debug("Time to make some requests now!");
                 //make request here
 
-                debug('L:' + BASE_URL + '/' + genre + '/page/' + pageNumber + '/');
                 RqGet.makeRequest(BASE_URL + '/' + genre + '/page/' + pageNumber + '/', false,
                     function (error, response, body) {
+                        //simple proxying of response HTTP status code
+                        RES.statusCode = response.statusCode;
+
                         var list = listScraper(body, true);
                         //render page with Jade
                         //RES.render('moviesList', {dataArray: list});
@@ -75,13 +77,7 @@ module.exports = function (app) {
                     });
             } catch (err) {
                 //end of pages
-                if (err.message == '404') {
-                    debug("Достигнут конец директории");
-                }
-                //most probably server overload
-                else {
-                    debug("Подгрузка не удалась. Возможно, сервер перегружен. Error code:" + err.message);
-                }
+                debug("ERR:" + err.message);
             }
         };
 

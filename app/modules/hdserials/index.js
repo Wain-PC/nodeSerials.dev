@@ -26,6 +26,7 @@ module.exports = function (app) {
     PATH = PATH + PREFIX;
     var REQ, RES, NEXT;
     var Request = require('../../util/request');
+    var DB = require('../../database');
     var USER_AGENT = 'Android;HD Serials v.1.7.0;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
     var RqGet = new Request(USER_AGENT, 'GET');
     var RqPost = new Request(USER_AGENT, 'POST');

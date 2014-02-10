@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var database = require('./database/db.js');
+database = new database();
 
 
 //jade enable

@@ -105,9 +105,11 @@ module.exports = function (db) {
 
 
     //use this ONLY for first run. This code creates tables on the database
-    db.sync(function (err) {
-        !err && console.log("DB sync done!");
-    });
+    /*
+     db.sync(function (err) {
+     !err && console.log("DB sync done!");
+     });
+     */
 
 
 }

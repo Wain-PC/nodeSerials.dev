@@ -1,0 +1,4 @@
+{
+    "name": "nodeserials-database",
+    "main": "./db.js"
+}

@@ -67,7 +67,6 @@ function myShowsAPI() {
 
             //add merge ability to the series
             series.merge = _this.objectMerger;
-            console.log("Search started!");
 
             if (series.title_en) {
                 console.log("Got en title!");
@@ -79,38 +78,43 @@ function myShowsAPI() {
             }
             else {
                 console.log("Sorry, cannot parse empty title");
-                return false;
+                callback(false);
+                return;
             }
 
             var rqString = _this.HOST + _this.SCHEME.public.search_show + encodeURIComponent(showTitle);
-            console.log("Going for:" + rqString);
 
             this.RQ.makeRequest(rqString, "GET", false, function (error, response, body) {
                 if (response.statusCode === _this.RC.HTTP.OK) {
                     console.log("Response OK");
-                    obj = _this.util.toUniversal(_this, JSON.parse(body), series);
+                    obj = _this.util.toUniversal(JSON.parse(body), series);
                     if (callback) callback(obj);
                 }
                 else if (response.statusCode === _this.RC.HTTP.NotFound) {
                     console.log("Item not found in MS database");
-                    if (callback) callback(response.statusCode);
+                    //try again using only the first word of the title
+
+                    if (callback) callback(false);
+                }
+                else {
+
                 }
             });
         }
         catch (err) {
             //some error happened
             callback("ERR:" + err);
+            return;
         }
     }.bind(this);
 
 
-    this.util.toUniversal = function (_this, obj, series) {
+    this.util.toUniversal = function (obj, series) {
+        var _this = this;
         var mss,
             counter = 0,
             titleFound = false;
         //iterating over incoming object
-        series.season = null; //REMOVE THIS!!!
-        console.log(JSON.stringify(series));
         for (var id in obj) {
             counter++;
             console.log("iterating over incoming object");
@@ -145,12 +149,10 @@ function myShowsAPI() {
             return series;
         }
         //title not found
-        //let's check it out
-        console.log(JSON.stringify(obj));
         return series;
 
 
-    };
+    }.bind(this);
 
     this.getGenres = function (callback) {
         var rqString = this.HOST + this.SCHEME.public.genres;
@@ -166,6 +168,7 @@ function myShowsAPI() {
         var series = {};
         series.title = mss.title;
         if (mss.ruTitle) series.title_ru = mss.ruTitle;
+        if (!series.poster && mss.image) series.poster = mss.image;
         series.status = mss.status;
         series.kpid = mss.kinopoiskId;
         series.tvrageId = mss.tvrageId;

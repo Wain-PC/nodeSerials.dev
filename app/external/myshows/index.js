@@ -82,7 +82,6 @@ function myShowsAPI() {
                 return false;
             }
 
-            console.log("HOST:" + _this.HOST);
             var rqString = _this.HOST + _this.SCHEME.public.search_show + encodeURIComponent(showTitle);
             console.log("Going for:" + rqString);
 
@@ -90,11 +89,11 @@ function myShowsAPI() {
                 if (response.statusCode === _this.RC.HTTP.OK) {
                     console.log("Response OK");
                     obj = _this.util.toUniversal(_this, JSON.parse(body), series);
-                    if (callback) callback(JSON.parse(body));
+                    if (callback) callback(obj);
                 }
                 else if (response.statusCode === _this.RC.HTTP.NotFound) {
                     console.log("Item not found in MS database");
-                    if (callback) callback(_this.RC.HTTP.NotFound);
+                    if (callback) callback(response.statusCode);
                 }
             });
         }

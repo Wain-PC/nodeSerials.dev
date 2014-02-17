@@ -26,13 +26,7 @@ module.exports = function (app, db) {
             console.log("Loading module " + file);
             require('./' + modulesFolder + '/' + file)(app, db);
         }
-
-
-        /*
-         if (file === "index.js" || file.substr(file.lastIndexOf('.') + 1) !== 'js')
-         return;
-         var name = file.substr(0, file.indexOf('.'));
-         */
-
     });
+
+
 };

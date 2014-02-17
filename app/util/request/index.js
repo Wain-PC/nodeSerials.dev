@@ -51,7 +51,7 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
     }
 
     var onRequestFinished = function (error, response, body) {
-        console.log("Got status code: " + response.statusCode);
+        //console.log("Got status code: " + response.statusCode);
         //console.log("Got headers: " + JSON.stringify(response.headers));
         if (response.statusCode != 200) {
             console.log("Request error, code " + response.statusCode);
@@ -63,7 +63,7 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
         }
     };
 
-    console.log('Sending ' + type + ' request to: ' + url);
+    //console.log('Sending ' + type + ' request to: ' + url);
     switch (type) {
         case 'GET':
         {

@@ -4,7 +4,6 @@ module.exports = function (app) {
     var PATH = '/modules/';
     var PREFIX = 'hdk';
     PATH = PATH + PREFIX;
-    var REQ, RES, NEXT;
     var USER_AGENT = 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14';
     var Request = require('../../util/request');
     var RqGet = new Request(USER_AGENT, 'GET');
@@ -13,9 +12,9 @@ module.exports = function (app) {
 
     function genreList(req, res, next) {
         //making main variables available to the module
-        REQ = req;
-        RES = res;
-        NEXT = next;
+        var REQ = req,
+            RES = res,
+            NEXT = next;
 
         //make genre list
         debug(BASE_URL + '/catalog/');
@@ -50,9 +49,9 @@ module.exports = function (app) {
 
     function moviesList(req, res, next) {
         //making main variables available to the module
-        REQ = req;
-        RES = res;
-        NEXT = next;
+        var REQ = req,
+            RES = res,
+            NEXT = next;
 
         var genre = REQ.params.genre;
         //pagination support
@@ -84,16 +83,15 @@ module.exports = function (app) {
         loadItems(pageNumber);
     }
 
-
     //This is ASYNCRONOUS CALLBACK HELL! BEWARE STRANGERS!!!
     function moviePage(req, res, next) {
         var i = 0,
             j = 0;
         var videoURL;
 
-        REQ = req;
-        RES = res;
-        NEXT = next;
+        var REQ = req,
+            RES = res,
+            NEXT = next;
 
         var url = decodeURIComponent(REQ.params.url);
 
@@ -108,7 +106,16 @@ module.exports = function (app) {
             var re = /makePlayer\('([\S\s]{0,300})'\);/;
             var dataArray = [],
                 videoURL,
+                poster,
                 replacing = '';
+
+            //getting the poster
+            var rePoster = /<div class="img"><a href="\/(\S*)"/;
+            poster = rePoster.exec(respond);
+            if (poster) {
+                poster = poster[1];
+                debug("Got poster:" + poster);
+            }
 
             var code = re.exec(respond);
             // ONLY ONE ITEM ON THE PAGE-----------------------------------------------------
@@ -163,15 +170,22 @@ module.exports = function (app) {
             }
             //render the data array
             //RES.render('moviePage', {dataArray: dataArray, replacer: replacing});
-            RES.json({'rootArray': dataArray});
+            var retObject = {
+                'rootArray': dataArray
+            };
+            if (poster) {
+                retObject.poster = poster;
+            }
+
+            RES.json(retObject);
         });
     }
 
     function getMovie(req, res, next) {
 
-        REQ = req;
-        RES = res;
-        NEXT = next;
+        var REQ = req,
+            RES = res,
+            NEXT = next;
 
         var url = decodeURIComponent(REQ.params.url);
         var replacer = decodeURIComponent(REQ.query.replacer);
@@ -341,7 +355,7 @@ module.exports = function (app) {
             item = re.exec(respond);
         }
 
-        re = /<div class="img">[\S\s]{0,300}<img src="(\S*)"/g;
+        re = /<div class="img">[\S\s]{0,300}<img src="\/(\S*)"/g;
 
         item = re.exec(respond);
 
@@ -359,6 +373,16 @@ module.exports = function (app) {
 
     }
 
+    function getPoster(req, res, next) {
+        if (!req.params[0]) {
+            debug("No url found");
+            return false;
+        }
+        var url = BASE_URL + '/uploads/' + req.params[0];
+        RqGet.makeRequest(url, false, function (error, response, body) {
+            res.end(body, 'binary');
+        });
+    }
 
     //syntax sugar for compatibility
     function debug(msg) {
@@ -370,5 +394,7 @@ module.exports = function (app) {
     app.get(PATH + '/genre/:genre', moviesList);
     app.get(PATH + '/item/:url', moviePage);
     app.get(PATH + '/item/get/:url', getMovie);
+    //app.param('url', /^[\da-z\.-\/]+$/);
+    app.get(PATH + '/uploads/*', getPoster);
 
 };

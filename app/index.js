@@ -23,6 +23,7 @@ database.connect(function (db) {
     //after all. handle 404 error
     console.log("404 listener add");
     app.all("*", function (request, response) {
+        response.statusCode = 404;
         response.end("Page not found");
     });
 

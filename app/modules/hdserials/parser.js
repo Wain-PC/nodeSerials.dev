@@ -1,29 +1,40 @@
 var HDSerialsParser = function () {
     var MS = require('../../external/myshows');
     this.myShowsParser = new MS();
+    var TVDB = require("../../external/thetvdb");
+    this.theTvDbParser = new TVDB("1F31F9C2BDB72379"); //@TODO: move this to config
 
 };
 
 
 HDSerialsParser.prototype.parse = function (json, callback) {
-    try {
-        var _this = this;
-        var series = simpleParser(json);
-        //try to parse with MyShowsParser
-        console.log("Searching for show on MyShows");
-        _this.myShowsParser.show.searchForShow(series, function (obj) {
-            //TODO:can we just return whatever received?
-            if (typeof(obj) != 'object' && callback) {
-                callback(series);
-            }
-            else if (callback && obj) {
-                callback(obj);
-            }
-        });
-    }
-    catch (err) {
-        console.log("Error happenned while parsing!:" + err.message);
-    }
+    //try {
+    var _this = this;
+    var series = simpleParser(json);
+    //try to parse with MyShowsParser
+    console.log("Searching for show on MyShows");
+
+    _this.theTvDbParser.show.searchForShow(series, function (obj) {
+        if (typeof(obj) != 'object' && callback) {
+            callback(series);
+        }
+        else if (callback && obj) {
+            callback(obj);
+        }
+    });
+    /*_this.myShowsParser.show.searchForShow(series, function (obj) {
+     //TODO:can we just return whatever received?
+     if (typeof(obj) != 'object' && callback) {
+     callback(series);
+     }
+     else if (callback && obj) {
+     callback(obj);
+     }
+     });*/
+    /*}
+     catch (err) {
+     console.log("Error happenned while parsing!:" + err.message);
+     }*/
 };
 
 

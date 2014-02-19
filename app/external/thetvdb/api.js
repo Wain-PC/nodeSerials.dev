@@ -4,7 +4,7 @@ var base_uri = "http://thetvdb.com/api/",
     parser = require("xml2json"),
     userAgent = 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'; ////@TODO: move this to config
 
-request = new request("", 'GET');
+request = new request(userAgent, 'GET');
 
 module.exports = function (access_token) {
 

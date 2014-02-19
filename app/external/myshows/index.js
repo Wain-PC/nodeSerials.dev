@@ -16,7 +16,8 @@ function myShowsAPI() {
     this.HOST = 'http://api.myshows.ru';
     this.show = {};
     this.util = {};
-    this.objectMerger = require('../../util/merge');
+    this.util.objectMerger = require('../../util/merge');
+    this.util.compare = require('../../util/compare');
     this.RC = {
         HTTP: {
             OK: 200,
@@ -174,36 +175,6 @@ function myShowsAPI() {
         series.tvrageId = mss.tvrageId;
         series.imdbid = mss.imdbid;
         return series;
-    }
-
-    this.util.compare = function () {
-        var a = arguments,
-            l = a.length,
-            a1, a2,
-            counter = 0;
-        var mode = {
-            and: 'AND',
-            or: 'OR'
-        };
-
-        if (!l || l % 2) {
-            console.log("Cannot compare args, no args or number not even");
-            return false;
-        }
-
-        for (var i = 0; i < l; i += 2) {
-            a1 = a[i];
-            a2 = a[i + 1];
-            if ((a1 || a2) && (a1 == a2)) {
-                counter++;
-            }
-        }
-        //AND mode: all comparisons were successful
-        //if(counter == l/2) return true;
-
-        //OR mode (default): at least 1 comparison was successful
-        if (counter) return true;
-        return false;
     }
 
 }

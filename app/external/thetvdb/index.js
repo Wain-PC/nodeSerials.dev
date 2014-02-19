@@ -49,14 +49,21 @@ function TheTvDbParser(key) {
             // seriesList containts either array of series or false
             if ((!err) && (seriesList = seriesFound(res))) {
                 var seriesId = getProperSeriesId(series, seriesList);
+                if (!seriesId) {
+                    console.log("The show hasn't been found on theTVDB");
+                    callback(false);
+                    return false;
+                }
+
 
                 //get episodes list from the chosen series
                 _this.api(key).getFullSeriesInfoById(seriesId, function (err, res) {
+                    if (!err) {
+                        callback(updateSeriesData(series, JSON.parse(JSON.stringify(res))));
+                        return true;
+                    }
 
-                    callback(res);
-                    return true;
                 });
-                console.log("Got info from theTVDB successfully:" + JSON.stringify(res));
                 //callback(res);
                 return true;
             }
@@ -68,11 +75,14 @@ function TheTvDbParser(key) {
 
     //thetvdb can return series either as object or as array. Check what's returned and return the former as array for conformity.
     var seriesFound = function (json) {
+        console.log(json);
         if (json.Data && json.Data.Series) {
-            if (Object.prototype.toString.call(json) === '[object Array]') {
+            if (Object.prototype.toString.call(json.Data.Series) === '[object Array]') {
+                console.log("This is ARRAY");
                 return json.Data.Series;
             }
             else {
+                console.log("This is NOT array:" + typeof json);
                 return new Array(json.Data.Series);
             }
         }
@@ -89,12 +99,16 @@ function TheTvDbParser(key) {
             titleFound = false;
         //iterating over incoming array
         seriesNumber = seriesList.length;
+        if (!seriesNumber) return false;
 
         //add merge ability to the series
         series.merge = _this.objectMerger;
 
+        console.log("Checking through " + seriesNumber + " occurencies");
+        console.log(seriesList);
         //do the check anyway (even if the series number = 1)
         for (i = 0; i < seriesNumber; i++) {
+            console.log(i);
             currentSeries = seriesList[i];
             console.log("IMDBID's Challenge:" + series.imdbid + " " + currentSeries.IMDB_ID);
             console.log("Title Challenge:" + series.title_ru + " " + currentSeries.SeriesName);
@@ -123,6 +137,54 @@ function TheTvDbParser(key) {
         //title not found
         return false;
     }.bind(this);
+
+    var updateSeriesData = function (series, tvdbSeries) {
+        var episodeList,
+            episodeQuantity,
+            seasonNumber,
+            episodeNumber,
+            tvdbEpisode,
+            episode,
+            i;
+
+        console.log("TVDB:" + tvdbSeries);
+        episodeList = tvdbSeries.Data.Episode;
+        console.log("EL:" + episodeList);
+        episodeQuantity = episodeList.length;
+        console.log("SL:" + episodeQuantity);
+        if (!episodeQuantity) {
+            console.log("No episodes in list:" + episodeQuantity);
+            return false;
+        }
+
+        for (i = 0; i < episodeQuantity; i++) {
+            console.log("EP:" + i);
+            tvdbEpisode = episodeList[i];
+            seasonNumber = tvdbEpisode.SeasonNumber;
+            episodeNumber = tvdbEpisode.EpisodeNumber;
+            //season actually exists (site has some videos)
+            if (!series.season[seasonNumber]) {
+                console.log("No such season:" + seasonNumber);
+                continue;
+            }
+            episode = series.season[seasonNumber].episode[episodeNumber];
+
+            if (!episode) {
+                console.log("NO episode for season " + seasonNumber + " ep:" + episodeNumber);
+                continue;
+            }
+
+            console.log("Updating info for season " + seasonNumber + " ep:" + episodeNumber);
+            episode.name = tvdbEpisode.EpisodeName;
+            episode.description = tvdbEpisode.Overview;
+            if (tvdbEpisode.filename) {
+                episode.thumbnail = tvdbEpisode.filename;
+            }
+            //save episode
+            series.season[seasonNumber].episode[episodeNumber] = episode;
+        }
+        return series;
+    };
 
 }
 

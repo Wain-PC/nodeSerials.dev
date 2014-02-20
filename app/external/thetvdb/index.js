@@ -3,7 +3,6 @@ function TheTvDbParser(key) {
     this.api = require("./api.js");
     this.show = {};
     this.util = {};
-    this.util.objectMerger = require('../../util/merge');
     this.util.compare = require('../../util/compare');
 
 
@@ -38,7 +37,6 @@ function TheTvDbParser(key) {
 
         //set language for appropriate language
         this.api(key).setLanguage(searchLang);
-        console.log("Set language " + searchLang);
 
         this.api(key).getSeries(showTitle, function (err, res) {
             if (err) {
@@ -62,9 +60,8 @@ function TheTvDbParser(key) {
                         callback(updateSeriesData(series, JSON.parse(JSON.stringify(res))));
                         return true;
                     }
-
                 });
-                //callback(res);
+
                 return true;
             }
 
@@ -75,19 +72,16 @@ function TheTvDbParser(key) {
 
     //thetvdb can return series either as object or as array. Check what's returned and return the former as array for conformity.
     var seriesFound = function (json) {
-        console.log(json);
         if (json.Data && json.Data.Series) {
             if (Object.prototype.toString.call(json.Data.Series) === '[object Array]') {
-                console.log("This is ARRAY");
                 return json.Data.Series;
             }
             else {
-                console.log("This is NOT array:" + typeof json);
                 return new Array(json.Data.Series);
             }
         }
         return false;
-    }
+    };
 
     //this function selects proper series from the series array, guided by either IMDBid or series title
     var getProperSeriesId = function (series, seriesList) {
@@ -101,17 +95,18 @@ function TheTvDbParser(key) {
         seriesNumber = seriesList.length;
         if (!seriesNumber) return false;
 
-        //add merge ability to the series
-        series.merge = _this.objectMerger;
+        //rough assumption, but it works pretty well
+        if (seriesNumber == 1) {
+            titleFound = true;
+            foundSeries = seriesList[0];
+            return foundSeries.seriesid;
+        }
 
         console.log("Checking through " + seriesNumber + " occurencies");
-        console.log(seriesList);
         //do the check anyway (even if the series number = 1)
         for (i = 0; i < seriesNumber; i++) {
             console.log(i);
             currentSeries = seriesList[i];
-            console.log("IMDBID's Challenge:" + series.imdbid + " " + currentSeries.IMDB_ID);
-            console.log("Title Challenge:" + series.title_ru + " " + currentSeries.SeriesName);
             if (_this.util.compare(series.imdbid, currentSeries.IMDB_ID)) {
                 console.log("Item found by IMDBid");
                 titleFound = true;
@@ -147,18 +142,23 @@ function TheTvDbParser(key) {
             episode,
             i;
 
-        console.log("TVDB:" + tvdbSeries);
         episodeList = tvdbSeries.Data.Episode;
-        console.log("EL:" + episodeList);
         episodeQuantity = episodeList.length;
-        console.log("SL:" + episodeQuantity);
         if (!episodeQuantity) {
             console.log("No episodes in list:" + episodeQuantity);
             return false;
         }
 
+        //do non-cyclic stuff
+
+        //add imdbid to the series, stripping first 2 characters ('tt')
+        if (tvdbSeries.Data.Series.IMDB_ID) {
+            series.imdbid = tvdbSeries.Data.Series.IMDB_ID;
+            series.imdbid = series.imdbid.substr(2);
+        }
+
+        //cycle through episodes of this series
         for (i = 0; i < episodeQuantity; i++) {
-            console.log("EP:" + i);
             tvdbEpisode = episodeList[i];
             seasonNumber = tvdbEpisode.SeasonNumber;
             episodeNumber = tvdbEpisode.EpisodeNumber;
@@ -180,6 +180,7 @@ function TheTvDbParser(key) {
             if (tvdbEpisode.filename) {
                 episode.thumbnail = tvdbEpisode.filename;
             }
+
             //save episode
             series.season[seasonNumber].episode[episodeNumber] = episode;
         }

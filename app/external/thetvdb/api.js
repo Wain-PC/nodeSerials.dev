@@ -12,6 +12,9 @@ module.exports = function (access_token) {
 
     function parsereq(url, cb) {
         request.makeRequest(url, false, function (error, response, body) {
+            if (error) {
+                cb(error, false, false);
+            }
             if (response.statusCode === 200) {
                 jsonbody = parser.toJson(body, {object: true, sanitize: false});
                 if (jsonbody.Error) {

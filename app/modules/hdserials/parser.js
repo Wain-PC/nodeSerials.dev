@@ -3,7 +3,6 @@ var HDSerialsParser = function () {
     this.myShowsParser = new MS();
     var TVDB = require("../../external/thetvdb");
     this.theTvDbParser = new TVDB("1F31F9C2BDB72379"); //@TODO: move this to config
-
 };
 
 
@@ -11,33 +10,38 @@ HDSerialsParser.prototype.parse = function (json, callback) {
     try {
         var _this = this;
         var series = simpleParser(json);
+        //adding merge ability to series
+        series.merge = require('../../util/merge');
         //try to parse with MyShowsParser
         console.log("Searching for show on MyShows");
 
-        _this.theTvDbParser.show.searchForShow(series, function (obj) {
-            if (typeof(obj) != 'object' && callback) {
+
+        _this.myShowsParser.show.searchForShow(series, function (obj) {
+            console.log("MyShows Parser ended");
+            series = updateSeries(series, obj);
+            _this.theTvDbParser.show.searchForShow(series, function (obj) {
+                console.log("TVDB Parser ended");
+                series = updateSeries(series, obj);
                 callback(series);
-            }
-            else if (callback && obj) {
-                callback(obj);
-            }
+            });
         });
 
-        /*_this.myShowsParser.show.searchForShow(series, function (obj) {
-         //TODO:can we just return whatever received?
-         if (typeof(obj) != 'object' && callback) {
-         callback(series);
-         }
-         else if (callback && obj) {
-         callback(obj);
-         }
-         });*/
+
     }
     catch (err) {
         console.log("Error happenned while parsing!:" + err.message);
         callback(false);
     }
 };
+
+
+function updateSeries(series, returnedSeries) {
+
+    if (returnedSeries) {
+        series.merge(returnedSeries);
+    }
+    return series;
+}
 
 
 function simpleParser(rawJSON) {
@@ -56,19 +60,20 @@ function simpleParser(rawJSON) {
             title_ru: j.info.title_ru,
             year: j.info.year,
             kpid: j.info.kp_id,
-            description: j.info.description
+            description: j.info.description,
+            poster: []
         };
 
         //adding poster
         var reImage = /^.*(\.jpg)$/i;
         var poster = reImage.exec(j.info.image_file);
         if (poster) {
-            console.log("Poster found: " + j.info.image_file);
-            series.poster = [j.info.image_file];
+            console.log("Poster found: " + j.info.image_file + " - ");
+            series.poster.push(j.info.image_file);
         }
         else {
             console.log("Poster NOT found: " + j.info.image_file);
-            //series.poster is undefined
+            //series.poster is an empty array
         }
 
         console.log("EN TITLE:" + JSON.stringify(j.info));

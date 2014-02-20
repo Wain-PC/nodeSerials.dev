@@ -16,7 +16,6 @@ function myShowsAPI() {
     this.HOST = 'http://api.myshows.ru';
     this.show = {};
     this.util = {};
-    this.util.objectMerger = require('../../util/merge');
     this.util.compare = require('../../util/compare');
     this.RC = {
         HTTP: {
@@ -66,9 +65,6 @@ function myShowsAPI() {
             var _this = this;
             var showTitle;
 
-            //add merge ability to the series
-            series.merge = _this.objectMerger;
-
             if (series.title_en) {
                 console.log("Got en title!");
                 showTitle = series.title_en;
@@ -84,27 +80,30 @@ function myShowsAPI() {
             }
 
             var rqString = _this.HOST + _this.SCHEME.public.search_show + encodeURIComponent(showTitle);
-
-            this.RQ.makeRequest(rqString, "GET", false, function (error, response, body) {
+            this.RQ.makeRequest(rqString, false, function (error, response, body) {
                 if (response.statusCode === _this.RC.HTTP.OK) {
                     console.log("Response OK");
                     obj = _this.util.toUniversal(JSON.parse(body), series);
                     if (callback) callback(obj);
-                }
-                else if (response.statusCode === _this.RC.HTTP.NotFound) {
-                    console.log("Item not found in MS database");
-                    //try again using only the first word of the title
-
-                    if (callback) callback(false);
+                    return true;
                 }
                 else {
-
+                    if (response.statusCode === _this.RC.HTTP.NotFound) {
+                        console.log("Item not found in MS database");
+                    }
+                    else {
+                        console.log("Something strange happened:" + response);
+                    }
                 }
+                if (callback) callback(false);
+                return false;
+
             });
         }
         catch (err) {
             //some error happened
-            callback("ERR:" + err);
+            console.log("ERR hapened in myshows parser:" + err);
+            callback(false);
             return;
         }
     }.bind(this);
@@ -118,13 +117,12 @@ function myShowsAPI() {
         //iterating over incoming object
         for (var id in obj) {
             counter++;
-            console.log("iterating over incoming object");
             //obj is our Series object
             //mss is MyShows Series object
             mss = obj[id];
             console.log(JSON.stringify(mss));
 
-            console.log("KPIDS Challenge:" + series.kpid + " " + mss.kinopoiskId + " " + (series.kpid == mss.kinopoiskId));
+            //console.log("KPIDS Challenge:" + series.kpid + " " + mss.kinopoiskId + " " + (series.kpid == mss.kinopoiskId));
             if (_this.util.compare(series.imdbid, mss.imdbid, series.kpid, mss.kinopoiskId, series.tvrageid, mss.tvrageid)) {
                 console.log("Item found by ID");
                 titleFound = true;
@@ -169,7 +167,7 @@ function myShowsAPI() {
         var series = {};
         series.title = mss.title;
         if (mss.ruTitle) series.title_ru = mss.ruTitle;
-        if (!series.poster && mss.image) series.poster = mss.image;
+        if (mss.image) series.poster = mss.image;
         series.status = mss.status;
         series.kpid = mss.kinopoiskId;
         series.tvrageId = mss.tvrageId;

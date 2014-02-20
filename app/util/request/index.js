@@ -67,6 +67,8 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
     var onRequestFinished = function (error, response, body) {
         if (error) {
             console.log("Request error:" + error);
+            callback(error, false, false);
+            return false;
         }
 
         //console.log("Got status code: " + response.statusCode);
@@ -79,9 +81,10 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
         if (callback) {
             callback(error, response, body);
         }
+        return true;
     };
 
-    console.log('Sending ' + type + ' request to: ' + url + JSON.stringify(requestOptions));
+    //console.log('Sending ' + type + ' request to: ' + url + JSON.stringify(requestOptions));
     REQUEST(requestOptions, onRequestFinished);
 
 };

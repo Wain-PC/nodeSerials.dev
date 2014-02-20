@@ -29,29 +29,20 @@ function merge(obj2) {
 }
 
 function mergeMultiple(obj1, obj2) {
-    if (obj1 === obj2) {
-        console.log("Same");
-        return obj1;
-    }
-    if (!isArray(obj1) && !isArray(obj1)) {
-        console.log("Both not array, making one");
-        return new Array(obj1, obj2);
-    }
+    if (obj1 === obj2) return obj1;
+    if (!isArray(obj1) && !isArray(obj1)) return new Array(obj1, obj2);
 
     if (isArray(obj1)) {
         if (isArray(obj2)) {
             //both are arrays
-            console.log("Both are arrays, concatenating");
             return obj1.concat(obj2);
         }
         //only obj1 is array
-        console.log("Only 1st is array" + obj1 + " " + obj2);
         obj1.push(obj2);
         return obj1;
     }
     else if (isArray(obj2)) {
         //only obj2 is array
-        console.log("Only 2nd is array");
         return obj2.push(obj1);
     }
 }

@@ -25,7 +25,6 @@ module.exports = function () {
 
         //console.log("Compairing " + a1 + ' ' + a2);
         if ((a1 || a2) && (a1 == a2)) {
-            console.log("Compare success");
             counter++;
             break;
         }

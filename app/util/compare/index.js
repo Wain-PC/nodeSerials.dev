@@ -16,8 +16,6 @@ module.exports = function () {
     for (var i = 0; i < l; i += 2) {
         a1 = a[i];
         a2 = a[i + 1];
-        console.log(typeof a1);
-        console.log(typeof a2);
 
         //lowercasing
         if ((typeof a1 == 'string') && (typeof a2 == 'string')) {
@@ -25,10 +23,11 @@ module.exports = function () {
             a2 = a2.toLowerCase();
         }
 
-        console.log("Compairing " + a1 + ' ' + a2);
+        //console.log("Compairing " + a1 + ' ' + a2);
         if ((a1 || a2) && (a1 == a2)) {
             console.log("Compare success");
             counter++;
+            break;
         }
     }
     //AND mode: all comparisons were successful

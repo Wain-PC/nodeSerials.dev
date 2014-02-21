@@ -12,7 +12,7 @@ module.exports = function (db) {
             year: {type: 'text'},
             imdbid: {type: 'number', defaultValue: 0, rational: false},
             kpid: {type: 'number', defaultValue: 0, rational: false},
-            tvrageId: {type: 'number', defaultValue: 0, rational: false},
+            tvrageid: {type: 'number', defaultValue: 0, rational: false},
             status: {type: 'text'},
             description: {type: 'text'}
         });
@@ -39,7 +39,6 @@ module.exports = function (db) {
     var Season = db.define('season',
         {
             num: {type: 'number', required: true},
-            series_num: {type: 'number', required: true},
             status: {type: 'text'},
             description: {type: 'text'}
         });

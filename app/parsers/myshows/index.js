@@ -113,19 +113,20 @@ function myShowsAPI() {
         var _this = this;
         var mss,
             counter = 0,
-            titleFound = false;
+            titleFound = false,
+            foundSeries;
         //iterating over incoming object
         for (var id in obj) {
             counter++;
             //obj is our Series object
             //mss is MyShows Series object
             mss = obj[id];
-            console.log(JSON.stringify(mss));
 
             //console.log("KPIDS Challenge:" + series.kpid + " " + mss.kinopoiskId + " " + (series.kpid == mss.kinopoiskId));
             if (_this.util.compare(series.imdbid, mss.imdbid, series.kpid, mss.kinopoiskId, series.tvrageid, mss.tvrageId)) {
                 console.log("Item found by ID");
                 titleFound = true;
+                foundSeries = mss;
                 //breaking here because matching ids are the guarantee of the success
                 break;
             }
@@ -134,17 +135,14 @@ function myShowsAPI() {
                 //assuming it's what we need
                 console.log("Item found by title (probably)");
                 titleFound = true;
-                //additional check using year
-                console.log(series.year + " vs " + mss.year);
-                if (_this.util.compare(series.year, mss.year)) {
-                    console.log("Year matches!");
-                }
+                foundSeries = mss;
+                break;
             }
         }
 
         if (titleFound) {
             console.log("Title found and updated successfully from the total of " + counter + " tries");
-            series.merge(_this.util.extractNeededData(mss));
+            series.merge(_this.util.extractNeededData(foundSeries));
             return series;
         }
         //title not found
@@ -166,12 +164,14 @@ function myShowsAPI() {
     this.util.extractNeededData = function (mss) {
         var series = {};
         series.title = mss.title;
+
+        if (mss.title) series.title_en = mss.title;
         if (mss.ruTitle) series.title_ru = mss.ruTitle;
         if (mss.image) series.poster = mss.image;
         series.status = mss.status;
         series.kpid = mss.kinopoiskId;
         series.tvrageid = mss.tvrageId;
-        series.imdbid = mss.imdbid;
+        series.imdbid = mss.imdbId;
         return series;
     }
 

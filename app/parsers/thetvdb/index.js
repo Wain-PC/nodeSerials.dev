@@ -10,12 +10,51 @@ function TheTvDbParser(key) {
         var _this = this;
         var key = this.key;
         var showTitle,
-            searchLang = 'ru', //default value
+            searchLang,
             seriesList = [];
-        if (!series) {
-            console.log("Series name is empty, aborting!");
+
+        if(!series) {
+            console.log("theTVDB parser received empty Series object, aborting search!");
             callback(false);
-            return;
+            return false;
+        }
+
+        var res = getTitleAndLanguage(series);
+        showTitle = res.title;
+        searchLang = res.lang;
+
+        //set language for appropriate language
+        this.api(key).setLanguage(searchLang);
+
+        //if possible, search show by imdb ID
+        if(series.imdbid) {
+            this.api(key).getSeriesByImdbId(series.imdbid, function(err,res) {
+                console.log("theTVDB Searching by IMDBID:"+series.imdbid);
+                mainCallback(_this,err,res,callback,series);
+            });
+        }
+        else {
+            //if not, search by show title
+            this.api(key).getSeries(showTitle, function(err,res) {
+                console.log("theTVDB Searching by show title:"+showTitle);
+                mainCallback(_this,err,res,callback,series);
+            });
+        }
+
+
+    }.bind(this);
+
+    var getTitleAndLanguage = function(series) {
+
+        var showTitle,
+            searchLang = 'ru';
+
+        if (!series) {
+            console.log("Series is empty, aborting!");
+            return {
+                title:showTitle,
+                lang: searchLang
+            };
         }
 
         if (series.title_en) {
@@ -31,16 +70,17 @@ function TheTvDbParser(key) {
 
         else {
             console.log("Sorry, cannot parse empty title! Aborting!");
-            callback(false);
-            return;
         }
+        return {
+            title:showTitle,
+            lang: searchLang
+        };
+    };
 
-        //set language for appropriate language
-        this.api(key).setLanguage(searchLang);
-
-        this.api(key).getSeries(showTitle, function (err, res) {
+    var mainCallback = function(_this,err,res,callback,series) {
+        var seriesList = [];
             if (err) {
-                console.log("Error while getting info from theTVDB");
+                console.log("Error while getting info from theTVDB:"+err);
                 callback(false);
                 return false;
             }
@@ -68,8 +108,7 @@ function TheTvDbParser(key) {
 
             console.log("No data received for this show");
             callback(false);
-        });
-    }.bind(this);
+    }
 
     //thetvdb can return series either as object or as array. Check what's returned and return the former as array for conformity.
     var seriesFound = function (json) {
@@ -104,10 +143,10 @@ function TheTvDbParser(key) {
         }
 
         console.log("Checking through " + seriesNumber + " occurencies");
-        //do the check anyway (even if the series number = 1)
-        for (i = 0; i < seriesNumber; i++) {
-            console.log(i);
+        //we move from the end (least possible series first). Though it's slower, it can possibly bring more accurate results.
+        for (i = seriesNumber-1; i >= 0; i--) {
             currentSeries = seriesList[i];
+            console.log(currentSeries.SeriesName);
             if (_this.util.compare(series.imdbid, currentSeries.IMDB_ID)) {
                 console.log("Item found by IMDBid");
                 titleFound = true;
@@ -121,6 +160,10 @@ function TheTvDbParser(key) {
             else if (_this.util.compare(series.title_en, currentSeries.SeriesName, series.title_ru, currentSeries.SeriesName)) {
                 //assuming it's what we need
                 console.log("Item found by title (probably)");
+
+                //if we have more seasons that tvdb has, most probably it's wrong series
+                //@TODO: write some kind of probability checker here (with multiple params: imdbid, kpid, name, number of seasons, etc.)
+
                 titleFound = true;
                 foundSeries = currentSeries;
             }
@@ -165,7 +208,7 @@ function TheTvDbParser(key) {
             episodeNumber = tvdbEpisode.EpisodeNumber;
             //season actually exists (site has some videos)
             if (!series.season[seasonNumber]) {
-                console.log("No such season:" + seasonNumber);
+                console.log("No such episode:" + seasonNumber+"x"+episodeNumber);
                 continue;
             }
             episode = series.season[seasonNumber].episode[episodeNumber];

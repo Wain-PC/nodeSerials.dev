@@ -61,10 +61,17 @@ module.exports = function (access_token) {
         parsereq(url, cb);
     };
 
+    resources.getSeriesByImdbId = function (id, cb) {
+        var url = base_uri + "GetSeriesByRemoteID.php?imdbid=" + id + "&language=" + language;
+        parsereq(url, cb);
+    };
+
+
     resources.getSeriesById = function (id, cb) {
         var url = base_uri + access_token + "/series/" + id + "/" + language + ".xml";
         parsereq(url, cb);
     };
+
 
     resources.getFullSeriesInfoById = function (id, cb) {
         var url = base_uri + access_token + "/series/" + id + "/all/" + language + ".xml";

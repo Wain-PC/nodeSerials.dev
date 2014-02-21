@@ -17,13 +17,19 @@ module.exports = function () {
         a1 = a[i];
         a2 = a[i + 1];
 
-        //lowercasing
+
         if ((typeof a1 == 'string') && (typeof a2 == 'string')) {
+            //lowercasing
             a1 = a1.toLowerCase();
             a2 = a2.toLowerCase();
+
+            //stripping possible 'the'
+            var re = /^the (.*)$/;
+            a1 = a1.replace(re,"$1");
+            a2 = a2.replace(re,"$1");
         }
 
-        //console.log("Compairing " + a1 + ' ' + a2);
+        console.log("Compairing " + a1 + ' ' + a2);
         if ((a1 || a2) && (a1 == a2)) {
             counter++;
             break;

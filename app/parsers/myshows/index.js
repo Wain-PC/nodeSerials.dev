@@ -123,7 +123,7 @@ function myShowsAPI() {
             console.log(JSON.stringify(mss));
 
             //console.log("KPIDS Challenge:" + series.kpid + " " + mss.kinopoiskId + " " + (series.kpid == mss.kinopoiskId));
-            if (_this.util.compare(series.imdbid, mss.imdbid, series.kpid, mss.kinopoiskId, series.tvrageid, mss.tvrageid)) {
+            if (_this.util.compare(series.imdbid, mss.imdbid, series.kpid, mss.kinopoiskId, series.tvrageid, mss.tvrageId)) {
                 console.log("Item found by ID");
                 titleFound = true;
                 //breaking here because matching ids are the guarantee of the success
@@ -170,7 +170,7 @@ function myShowsAPI() {
         if (mss.image) series.poster = mss.image;
         series.status = mss.status;
         series.kpid = mss.kinopoiskId;
-        series.tvrageId = mss.tvrageId;
+        series.tvrageid = mss.tvrageId;
         series.imdbid = mss.imdbid;
         return series;
     }

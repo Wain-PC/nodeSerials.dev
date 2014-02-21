@@ -1,4 +1,5 @@
 var HDSerialsParser = function () {
+    this.series = {};
     var MS = require('../../parsers/myshows');
     this.myShowsParser = new MS();
     var TVDB = require("../../parsers/thetvdb");
@@ -7,46 +8,34 @@ var HDSerialsParser = function () {
 
 
 HDSerialsParser.prototype.parse = function (json, callback) {
-    try {
-        var _this = this;
-        var series = simpleParser(json);
-        //adding merge ability to series
-        series.merge = require('../../util/merge');
-        //try to parse with MyShowsParser
-        console.log("Searching for show on MyShows");
+    //try {
+    var _this = this;
+    var Series = require('../../core/series');
+    this.series = new Series();
+    this.series = allNewParser(_this.series, json);
 
-
-        _this.myShowsParser.show.searchForShow(series, function (obj) {
-            series = updateSeries(series, obj);
-            _this.theTvDbParser.show.searchForShow(series, function (obj) {
-                series = updateSeries(series, obj);
-                callback(series);
-            });
+    this.myShowsParser.show.searchForShow(this.series, function (obj) {
+        if (obj) {
+            _this.series.merge(obj);
+        }
+        _this.theTvDbParser.show.searchForShow(_this.series, function (obj) {
+            _this.series.merge(obj);
+            callback(_this.series);
         });
+    });
+    /*}
+     catch (err) {
+     console.log("Error happenned while parsing!:" + err.message);
+     if(this.series) {
+     //at least, return what we've had before fail occured
+     callback(this.series);
+     }
+     else {
+     callback(false);
+     }
 
-
-    }
-    catch (err) {
-        console.log("Error happenned while parsing!:" + err.message);
-        if(series) {
-            //at least, return what we've had before fail occured
-            callback(series);
-        }
-        else {
-            callback(false);
-        }
-
-    }
+     }*/
 };
-
-
-function updateSeries(series, returnedSeries) {
-
-    if (returnedSeries) {
-        series.merge(returnedSeries);
-    }
-    return series;
-}
 
 
 function simpleParser(rawJSON) {
@@ -171,6 +160,75 @@ function simpleParser(rawJSON) {
         console.log(err.message);
         return false;
     }
+}
+
+
+function allNewParser(series, json) {
+    // try {
+    var j = JSON.parse(json);
+    j = j.data;
+
+    if (!j.found) throw new Error('Item not found');
+
+    var i, l, s, e, file;
+    s = 0;
+    e = 0;
+
+    series.setProperties(
+        {
+            title_en: j.info.title_en,
+            title_ru: j.info.title_ru,
+            year: j.info.year,
+            kpid: j.info.kp_id,
+            description: j.info.description
+        });
+
+
+    l = j.files.length;
+    for (i = 0; i < l; i++) {
+        file = j.files[i];
+        s = file.season;
+        e = file.episode;
+
+        //wrong season or episode number provided, try to search title
+        var reSeason = /Сезон.?(\d+)/i;
+        var se = reSeason.exec(file.title);
+        if (se) s = se[1];
+        else {
+            reSeason = /(\d+).?Сезон/i;
+            se = reSeason.exec(file.title);
+            if (se) s = se[1];
+        }
+
+        var reEpisode = /Серия.?(\d+)/i;
+        var ep = reEpisode.exec(file.title);
+        if (ep) e = ep[1];
+        else {
+            reEpisode = /(\d+).?Серия/i;
+            ep = reEpisode.exec(file.title);
+            if (ep) e = ep[1];
+        }
+        //assume first season default
+        if(s == 0) s=1;
+
+        console.log("Creating episode " + e + " of season " + s + " : " + file.title);
+        series.addEpisode(
+            {
+                seasonNumber: s,
+                episodeNumber: e,
+                video: {
+                    url: file.url,
+                    type: file.type
+                }
+            });
+    }
+
+    return series;
+    /*}
+     catch (err) {
+     console.log("Error while AllNewParsing:"+ err.message);
+     return false;
+     }*/
 }
 
 module.exports = HDSerialsParser;

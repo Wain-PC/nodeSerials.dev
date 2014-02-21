@@ -1,0 +1,4 @@
+{
+    "name": "nodeserials-core-series",
+    "main": "./series.js"
+}

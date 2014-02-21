@@ -40,12 +40,13 @@ function TheTvDbParser(key) {
 
         this.api(key).getSeries(showTitle, function (err, res) {
             if (err) {
+                console.log("Error while getting info from theTVDB");
                 callback(false);
                 return false;
             }
             // '=' is NOT an error here
             // seriesList containts either array of series or false
-            if ((!err) && (seriesList = seriesFound(res))) {
+            if (seriesList = seriesFound(res)) {
                 var seriesId = getProperSeriesId(series, seriesList);
                 if (!seriesId) {
                     console.log("The show hasn't been found on theTVDB");
@@ -57,7 +58,7 @@ function TheTvDbParser(key) {
                 //get episodes list from the chosen series
                 _this.api(key).getFullSeriesInfoById(seriesId, function (err, res) {
                     if (!err) {
-                        callback(updateSeriesData(series, JSON.parse(JSON.stringify(res))));
+                        callback(updateSeriesData(series, res));
                         return true;
                     }
                 });
@@ -65,7 +66,7 @@ function TheTvDbParser(key) {
                 return true;
             }
 
-            console.log(err);
+            console.log("No data received for this show");
             callback(false);
         });
     }.bind(this);
@@ -178,12 +179,15 @@ function TheTvDbParser(key) {
             episode.name = tvdbEpisode.EpisodeName;
             episode.description = tvdbEpisode.Overview;
             if (tvdbEpisode.filename) {
-                episode.thumbnail = tvdbEpisode.filename;
+                //@TODO: change this hardcode somehow
+                episode.thumbnail = 'http://thetvdb.com/banners/'+tvdbEpisode.filename;
             }
 
             //save episode
             series.season[seasonNumber].episode[episodeNumber] = episode;
+            //console.log(JSON.stringify(series.season[seasonNumber]));
         }
+
         return series;
     };
 

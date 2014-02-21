@@ -9,4 +9,6 @@ extends template
 block common-categories
     for item in dataArray
         p
-            a(href='../item/'+item.id)= item.title_ru
+            a(href='../item/'+item.id+'?season='+item.season)= item.title_ru
+
+    textarea= rawData

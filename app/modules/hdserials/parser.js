@@ -8,7 +8,7 @@ var HDSerialsParser = function () {
 
 
 HDSerialsParser.prototype.parse = function (json, callback) {
-    //try {
+    try {
     var _this = this;
     var Series = require('../../core/series');
     this.series = new Series();
@@ -23,7 +23,7 @@ HDSerialsParser.prototype.parse = function (json, callback) {
             callback(_this.series);
         });
     });
-    /*}
+    }
      catch (err) {
      console.log("Error happenned while parsing!:" + err.message);
      if(this.series) {
@@ -34,7 +34,7 @@ HDSerialsParser.prototype.parse = function (json, callback) {
      callback(false);
      }
 
-     }*/
+     }
 };
 
 
@@ -164,8 +164,9 @@ function simpleParser(rawJSON) {
 
 
 function allNewParser(series, json) {
-    // try {
-    var j = JSON.parse(json);
+     try {
+    var j = json;
+         injectedSeason = j.season;
     j = j.data;
 
     if (!j.found) throw new Error('Item not found');
@@ -208,8 +209,11 @@ function allNewParser(series, json) {
             ep = reEpisode.exec(file.title);
             if (ep) e = ep[1];
         }
-        //assume first season default
-        if(s == 0) s=1;
+        //assume first season default (or get one passed manually)
+        if(!s || s == 0) {
+            if(injectedSeason) s = injectedSeason;
+            else s = 1;
+        }
 
         console.log("Creating episode " + e + " of season " + s + " : " + file.title);
         series.addEpisode(
@@ -224,11 +228,11 @@ function allNewParser(series, json) {
     }
 
     return series;
-    /*}
+    }
      catch (err) {
      console.log("Error while AllNewParsing:"+ err.message);
      return false;
-     }*/
+     }
 }
 
 module.exports = HDSerialsParser;

@@ -61,11 +61,12 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RqGet.makeRequest(BASE_URL, rqData, onRequestFinished);
+        RqGet.makeRequest(BASE_URL, rqData, onsubDirRequestFinished);
     }
 
     function itemHandler(req, res, next) {
         var id = req.params.id;
+        var season = req.query.season;
         var rqData = {
             id: 'video',
             video: id
@@ -75,7 +76,17 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RqGet.makeRequest(BASE_URL, rqData, parse);
+        RqGet.makeRequest(BASE_URL, rqData, function(error, response, body) {
+
+            var obj = JSON.parse(body);
+            //if we've got the season number earlier, inject it to json
+            if(season) {
+                obj.season = season;
+            }
+            var series = Parser.parse(obj, function (series) {
+                RES.end(JSON.stringify(series));
+            });
+        });
     }
 
     function videoHandler(req, res, next) {
@@ -106,15 +117,32 @@ module.exports = function (app) {
         }
     }
 
-    //simple middleware
-    function parse(error, response, body) {
+    function onsubDirRequestFinished(error, response, body) {
+        try {
+            var resJSON = JSON.parse(body);
+            //render it with JADE
+            //render the page with received view
 
-        var series = Parser.parse(body, function (series) {
-            RES.end(JSON.stringify(series));
-        });
+            var s;
+            var reSeason = /Сезон.?(\d+)/i,
+                reSeason2 = /(\d+).?Сезон/i,
+                se;
 
+            for(var i=0;i<resJSON.data.length;i++) {
+                if(resJSON.data[i].season) {
+                    resJSON.data[i].season = resJSON.data[i].season.replace(/\D/g,'');
+                }
+            }
 
+            RES.render(resJSON.id,
+                { dataArray: resJSON.data, rawData: body }
+            );
+        }
+        catch (err) {
+            RES.end("Error happenned: " + err);
+        }
     }
+
 
     function getVideoLink(url, callback) {
         var result_url = url,

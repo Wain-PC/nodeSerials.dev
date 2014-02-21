@@ -16,6 +16,9 @@ function merge(obj2) {
                 obj1[p] = mergeMultiple(obj1[p], obj2[p]);
             }
             else {
+                if(is.function(obj1[p])) {
+                    continue;
+                }
                 obj1[p] = obj2[p];
 
             }
@@ -29,6 +32,9 @@ function merge(obj2) {
 
     return obj1;
 }
+
+
+
 
 function mergeMultiple(obj1, obj2) {
     if (obj1 === obj2) return obj1;

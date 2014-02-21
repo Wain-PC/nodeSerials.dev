@@ -1,24 +1,3 @@
-/**
- *  HDSerials plugin for Showtime
- *
- *  Copyright (C) 2013 Buksa, Wain
- *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
-//ver 0.7.0 API
-
-
 module.exports = function (app) {
 
     var PATH = '/modules/';
@@ -58,9 +37,6 @@ module.exports = function (app) {
             start: page * itemsPerPage + 1
         };
 
-        console.log("SUB-CAT ID:" + rqData.parent);
-        console.log("SUB-CAT PAGE:" + rqData.start);
-
         REQ = req;
         RES = res;
         NEXT = next;
@@ -71,14 +47,13 @@ module.exports = function (app) {
 
     function subdirHandler(req, res, next) {
         var id = req.params.id;
-        //make some offset params in the routing scheme
-        //before that, it'll load only first page
-        //also, timeout system needs to be implemented
+        var page = req.query.page || 0; //dirty hack
+        var itemsPerPage = 20; //hardcoded
         var rqData = {
             id: 'filter-videos',
             category: id,
             fresh: 1,
-            start: 0,
+            start: page * itemsPerPage,
             limit: 20
         };
 

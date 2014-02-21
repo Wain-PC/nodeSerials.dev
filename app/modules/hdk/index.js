@@ -394,7 +394,6 @@ module.exports = function (app) {
     app.get(PATH + '/genre/:genre', moviesList);
     app.get(PATH + '/item/:url', moviePage);
     app.get(PATH + '/item/get/:url', getMovie);
-    //app.param('url', /^[\da-z\.-\/]+$/);
     app.get(PATH + '/uploads/*', getPoster);
 
 };

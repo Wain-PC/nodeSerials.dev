@@ -1,7 +1,7 @@
 var HDSerialsParser = function () {
-    var MS = require('../../external/myshows');
+    var MS = require('../../parsers/myshows');
     this.myShowsParser = new MS();
-    var TVDB = require("../../external/thetvdb");
+    var TVDB = require("../../parsers/thetvdb");
     this.theTvDbParser = new TVDB("1F31F9C2BDB72379"); //@TODO: move this to config
 };
 
@@ -17,10 +17,8 @@ HDSerialsParser.prototype.parse = function (json, callback) {
 
 
         _this.myShowsParser.show.searchForShow(series, function (obj) {
-            console.log("MyShows Parser ended");
             series = updateSeries(series, obj);
             _this.theTvDbParser.show.searchForShow(series, function (obj) {
-                console.log("TVDB Parser ended");
                 series = updateSeries(series, obj);
                 callback(series);
             });
@@ -30,7 +28,14 @@ HDSerialsParser.prototype.parse = function (json, callback) {
     }
     catch (err) {
         console.log("Error happenned while parsing!:" + err.message);
-        callback(false);
+        if(series) {
+            //at least, return what we've had before fail occured
+            callback(series);
+        }
+        else {
+            callback(false);
+        }
+
     }
 };
 
@@ -145,7 +150,7 @@ function simpleParser(rawJSON) {
                 if (ep) e = ep[1];
             }
             console.log("SEASON:" + s + " EPISODE:" + e);
-            //what to do if you don't know the season?!
+            //@TODO: what to do if we don't know the season?!
 
 
             //console.log("Creating episode " + e + " of season " + s + " : " + file.title);

@@ -1,0 +1,4 @@
+{
+    "name": "nodeserials-providers",
+    "main": "./providers.js"
+}

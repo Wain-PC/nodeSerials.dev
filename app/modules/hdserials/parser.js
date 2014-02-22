@@ -192,27 +192,39 @@ function allNewParser(series, json) {
         e = file.episode;
 
         //wrong season or episode number provided, try to search title
-        var reSeason = /Сезон.?(\d+)/i;
-        var se = reSeason.exec(file.title);
-        if (se) s = se[1];
-        else {
-            reSeason = /(\d+).?Сезон/i;
-            se = reSeason.exec(file.title);
-            if (se) s = se[1];
+        if(!s || s == 0) {
+            //if the season number has been passed manually
+            if(injectedSeason) {
+                console.log("Got season name from query: "+s);
+                s = injectedSeason;
+            }
+            else {
+                var reSeason = /(\d+).?Сезон/i;
+                var se = reSeason.exec(file.title);
+                if (se) s = se[1];
+                else {
+                    reSeason = /Сезон.?(\d+)/i;
+                    se = reSeason.exec(file.title);
+                    if (se) s = se[1];
+                }
+                console.log("Got season name after regexes: "+s);
+                //nothing worked. Assume it's season 1
+                if(!s || s == 0) {
+                    s = 1;
+                    console.log("Nothing worked: "+s);
+                }
+            }
         }
 
-        var reEpisode = /Серия.?(\d+)/i;
-        var ep = reEpisode.exec(file.title);
-        if (ep) e = ep[1];
-        else {
-            reEpisode = /(\d+).?Серия/i;
-            ep = reEpisode.exec(file.title);
+        if(!e || e == 0) {
+            var reEpisode = /(\d+).?Серия/i;
+            var ep = reEpisode.exec(file.title);
             if (ep) e = ep[1];
-        }
-        //assume first season default (or get one passed manually)
-        if(!s || s == 0) {
-            if(injectedSeason) s = injectedSeason;
-            else s = 1;
+            else {
+                reEpisode = /Серия.?(\d+)/i;
+                ep = reEpisode.exec(file.title);
+                if (ep) e = ep[1];
+            }
         }
 
         console.log("Creating episode " + e + " of season " + s + " : " + file.title);

@@ -133,7 +133,7 @@ function myShowsAPI() {
 
             else if (_this.util.compare(series.title_en, mss.title, series.title_ru, mss.ruTitle)) {
                 //assuming it's what we need
-                console.log("Item found by title (probably)");
+                console.log("Item found by title (probably)"+JSON.stringify(mss));
                 titleFound = true;
                 foundSeries = mss;
                 break;

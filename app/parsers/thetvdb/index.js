@@ -13,7 +13,7 @@ function TheTvDbParser(key) {
             searchLang,
             seriesList = [];
 
-        if(!series) {
+        if (!series) {
             console.log("theTVDB parser received empty Series object, aborting search!");
             callback(false);
             return false;
@@ -27,24 +27,33 @@ function TheTvDbParser(key) {
         this.api(key).setLanguage(searchLang);
 
         //if possible, search show by imdb ID
-        if(series.imdbid) {
-            this.api(key).getSeriesByImdbId(series.imdbid, function(err,res) {
-                console.log("theTVDB Searching by IMDBID:"+series.imdbid);
-                mainCallback(_this,err,res,callback,series);
+        if (series.imdbid) {
+            this.api(key).getSeriesByImdbId(series.imdbid, function (err, res) {
+                console.log("theTVDB Searching by IMDBID:" + series.imdbid);
+                if(err || !seriesFound(res)) {
+                    _this.api(key).getSeries(showTitle, function (err, res) {
+                        console.log("theTVDB Searching by show title:" + showTitle);
+                        mainCallback(_this, err, res, callback, series);
+                    });
+                }
+                else {
+                    mainCallback(_this, err, res, callback, series);
+                }
+
             });
         }
         else {
             //if not, search by show title
-            this.api(key).getSeries(showTitle, function(err,res) {
-                console.log("theTVDB Searching by show title:"+showTitle);
-                mainCallback(_this,err,res,callback,series);
+            this.api(key).getSeries(showTitle, function (err, res) {
+                console.log("theTVDB Searching by show title:" + showTitle);
+                mainCallback(_this, err, res, callback, series);
             });
         }
 
 
     }.bind(this);
 
-    var getTitleAndLanguage = function(series) {
+    var getTitleAndLanguage = function (series) {
 
         var showTitle,
             searchLang = 'ru';
@@ -52,7 +61,7 @@ function TheTvDbParser(key) {
         if (!series) {
             console.log("Series is empty, aborting!");
             return {
-                title:showTitle,
+                title: showTitle,
                 lang: searchLang
             };
         }
@@ -72,42 +81,43 @@ function TheTvDbParser(key) {
             console.log("Sorry, cannot parse empty title! Aborting!");
         }
         return {
-            title:showTitle,
+            title: showTitle,
             lang: searchLang
         };
     };
 
-    var mainCallback = function(_this,err,res,callback,series) {
+    var mainCallback = function (_this, err, res, callback, series) {
         var seriesList = [];
-            if (err) {
-                console.log("Error while getting info from theTVDB:"+err);
+        if (err) {
+            console.log("Error while getting info from theTVDB:" + err);
+            callback(false);
+            return false;
+        }
+        // '=' is NOT an error here
+        // seriesList containts either array of series or false
+        if (seriesList = seriesFound(res)) {
+            var seriesId = getProperSeriesId(series, seriesList);
+            if (!seriesId) {
+                console.log("The show hasn't been found on theTVDB");
                 callback(false);
                 return false;
             }
-            // '=' is NOT an error here
-            // seriesList containts either array of series or false
-            if (seriesList = seriesFound(res)) {
-                var seriesId = getProperSeriesId(series, seriesList);
-                if (!seriesId) {
-                    console.log("The show hasn't been found on theTVDB");
-                    callback(false);
-                    return false;
+
+
+            //get episodes list from the chosen series
+            _this.api(key).getFullSeriesInfoById(seriesId, function (err, res) {
+                if (!err) {
+                    callback(updateSeriesData(series, res));
+                    return true;
                 }
+            });
 
+            return true;
+        }
 
-                //get episodes list from the chosen series
-                _this.api(key).getFullSeriesInfoById(seriesId, function (err, res) {
-                    if (!err) {
-                        callback(updateSeriesData(series, res));
-                        return true;
-                    }
-                });
-
-                return true;
-            }
-
-            console.log("No data received for this show");
-            callback(false);
+        console.log("No data received for this show");
+        callback(false);
+        return false;
     }
 
     //thetvdb can return series either as object or as array. Check what's returned and return the former as array for conformity.
@@ -144,7 +154,7 @@ function TheTvDbParser(key) {
 
         console.log("Checking through " + seriesNumber + " occurencies");
         //we move from the end (least possible series first). Though it's slower, it can possibly bring more accurate results.
-        for (i = seriesNumber-1; i >= 0; i--) {
+        for (i = seriesNumber - 1; i >= 0; i--) {
             currentSeries = seriesList[i];
             console.log(currentSeries.SeriesName);
             if (_this.util.compare(series.imdbid, currentSeries.IMDB_ID)) {
@@ -186,6 +196,8 @@ function TheTvDbParser(key) {
             episode,
             i;
 
+        var is = require('../../util/is');
+
         episodeList = tvdbSeries.Data.Episode;
         episodeQuantity = episodeList.length;
         if (!episodeQuantity) {
@@ -195,8 +207,13 @@ function TheTvDbParser(key) {
 
         //do non-cyclic stuff
 
+        //add thetvdbid to series
+        if (tvdbSeries.Data.Series.id) {
+            series.thetvdbid = tvdbSeries.Data.Series.id;
+        }
+
         //add imdbid to the series, stripping first 2 characters ('tt')
-        if (tvdbSeries.Data.Series.IMDB_ID) {
+        if (is.string(tvdbSeries.Data.Series.IMDB_ID)) {
             series.imdbid = tvdbSeries.Data.Series.IMDB_ID;
             series.imdbid = series.imdbid.substr(2);
         }
@@ -208,7 +225,7 @@ function TheTvDbParser(key) {
             episodeNumber = tvdbEpisode.EpisodeNumber;
             //season actually exists (site has some videos)
             if (!series.season[seasonNumber]) {
-                console.log("No such episode:" + seasonNumber+"x"+episodeNumber);
+                console.log("No such episode:" + seasonNumber + "x" + episodeNumber);
                 continue;
             }
             episode = series.season[seasonNumber].episode[episodeNumber];
@@ -221,14 +238,13 @@ function TheTvDbParser(key) {
             console.log("Updating info for season " + seasonNumber + " ep:" + episodeNumber);
             episode.name = tvdbEpisode.EpisodeName;
             episode.description = tvdbEpisode.Overview;
-            if (tvdbEpisode.filename) {
-                //@TODO: change this hardcode somehow
-                episode.thumbnail = 'http://thetvdb.com/banners/'+tvdbEpisode.filename;
-            }
+                if(is.string(tvdbEpisode.filename)) {
+                    //@TODO: change this hardcode somehow
+                    episode.thumbnail = 'http://thetvdb.com/banners/' + tvdbEpisode.filename;
+                }
 
             //save episode
             series.season[seasonNumber].episode[episodeNumber] = episode;
-            //console.log(JSON.stringify(series.season[seasonNumber]));
         }
 
         return series;

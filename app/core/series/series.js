@@ -141,11 +141,13 @@ Series.prototype.addPoster = function(poster) {
     return false;
 
     function ifImage(url) {
-        var imageValidationRegExp = /^https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+\.(?:jpg|jpeg|png)$/;
-        var res = imageValidationRegExp.exec(url);
-        if(res) return true;
-        return false;
+        return /^https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+\.(?:jpg|jpeg|png)$/i.test(url);
     }
+};
+
+Series.prototype.addShow = function() {
+    //count total length of episodes here
+    //if no episodes present, parsing shouldn't be done
 };
 
 Series.prototype.merge = require('../../util/merge');

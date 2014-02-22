@@ -199,6 +199,10 @@ function TheTvDbParser(key) {
         var is = require('../../util/is');
 
         episodeList = tvdbSeries.Data.Episode;
+        if(!episodeList) {
+            console.log("Show found on theTVDB, but it has no episodes");
+            return false;
+        }
         episodeQuantity = episodeList.length;
         if (!episodeQuantity) {
             console.log("No episodes in list:" + episodeQuantity);

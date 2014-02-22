@@ -5,6 +5,7 @@ var Providers = {
         //okay, this is rather dumb, i know
         //@TODO: rewrite later (using brain)
         console.log("PROV:"+url);
+        if(!url) return false;
         var i;
         for(i=0;i<this.providersList.length;i++) {
             if (url.indexOf(this.providersList[i][1]) >= 0) {

@@ -163,9 +163,10 @@ function myShowsAPI() {
 
     this.util.extractNeededData = function (mss) {
         var series = {};
+        var is = require('../../util/is');
         series.title = mss.title;
 
-        if (mss.title) series.title_en = mss.title;
+        if (mss.title && !is.russian(mss.title)) series.title_en = mss.title;
         if (mss.ruTitle) series.title_ru = mss.ruTitle;
         if (mss.image) series.poster = mss.image;
         series.status = mss.status;

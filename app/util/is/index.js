@@ -17,6 +17,10 @@ var Is = {
 
     function: function (n) {
         return (typeof(n) === 'function');
+    },
+
+    russian: function(n) {
+        return Is.string(n) && /[А-ЯЁ]/gi.test(n);
     }
 };
 

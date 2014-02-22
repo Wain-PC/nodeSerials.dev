@@ -23,8 +23,8 @@ module.exports = function () {
             a1 = a1.toLowerCase();
             a2 = a2.toLowerCase();
 
-            //stripping possible 'the'
-            var re = /^the (.*)$/;
+            //stripping possible 'the' and year like (2014) at the end
+            var re = /^(?:the )?(.+?)(?:[!?]?)(?: \(\d{4}\))?$/;
             a1 = a1.replace(re,"$1");
             a2 = a2.replace(re,"$1");
         }

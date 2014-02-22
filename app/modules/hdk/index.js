@@ -31,7 +31,7 @@ module.exports = function (app) {
                 //menu[1] is href, menu[2] is title
                 data.push({
                     url: 'genre/' + menu[1],
-                    title: menu[2]
+                    listItemTitle: menu[2]
                 });
                 //getting next menu item
                 menu = re.exec(menuHTML);

@@ -12,10 +12,8 @@ var util = require('util');
 module.exports = function (app, db) {
 
     var modulesFolder = 'modules';
+    var modulesList = [];
     //modules routing
-    app.get("/", function (request, response) {
-        response.end("Welcome to the homepage!");
-    });
 
     //syncronous directory searching of available modules
     fs.readdirSync(__dirname + '/' + modulesFolder).forEach(function (file) {
@@ -24,9 +22,14 @@ module.exports = function (app, db) {
         var stat = fs.statSync(__dirname + '/' + modulesFolder + '/' + file);
         if (stat && stat.isDirectory()) {
             console.log("Loading module " + file);
+            modulesList.push(file + '/');
             require('./' + modulesFolder + '/' + file)(app, db);
         }
     });
 
+    app.get("/", function (request, response) {
+        console.log(JSON.stringify(modulesList));
+        response.render('mainPage', {dataArray: modulesList});
+    });
 
 };

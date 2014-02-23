@@ -84,7 +84,7 @@ module.exports = function (app) {
         loadItems(pageNumber);
     }
 
-    //This is ASYNCRONOUS CALLBACK HELL! BEWARE STRANGERS!!!
+
     function moviePage(req, res, next) {
         var i = 0,
             j = 0;
@@ -116,8 +116,9 @@ module.exports = function (app) {
             var rePoster = /<div class="img"><a href="\/(\S*)"/;
             poster = rePoster.exec(respond);
             if (poster) {
-                poster = poster[1];
+                poster = BASE_URL + '/' + poster[1];
                 debug("Got poster:" + poster);
+                series.addPoster(poster);
             }
 
             //getting the replacer
@@ -129,7 +130,7 @@ module.exports = function (app) {
             var reName = /<title>(.*?) - смотреть онлайн/i;
             showTitle = reName.exec(respond);
             showTitle = getSeriesTitles(showTitle[1]);
-            console.log("ShowTitle:"+JSON.stringify(showTitle));
+            console.log("ShowTitle:" + JSON.stringify(showTitle));
             //setting props
             series.setProperties(
                 {
@@ -144,7 +145,7 @@ module.exports = function (app) {
             // ONLY ONE ITEM ON THE PAGE-----------------------------------------------------
             if (code) {
                 code = code[1];
-                code = mutateCode(code,replacing);
+                code = mutateCode(code, replacing);
                 //if you don't know the video type, get it with providers interface
                 videoType = providers.getProviderFromURL(videoURL);
                 if (videoType == 'vk') {
@@ -183,7 +184,7 @@ module.exports = function (app) {
                                 videoURL = videoList[i].playlist[j].file;
                                 videoType = providers.getProviderFromURL(videoURL);
                                 if (videoType == 'vk') {
-                                    videoURL = mutateCode(videoURL,replacing);
+                                    videoURL = mutateCode(videoURL, replacing);
                                     videoURL = 'http://vk.com/video_ext.php?' + videoURL;
                                 }
 
@@ -206,7 +207,7 @@ module.exports = function (app) {
                             s = getSeasonNumber(videoList[i].comment);
                             e = getEpisodeNumber(videoList[i].comment);
                             if (videoType == 'vk') {
-                                videoURL = mutateCode(videoURL,replacing);
+                                videoURL = mutateCode(videoURL, replacing);
                                 videoURL = 'http://vk.com/video_ext.php?' + videoURL;
                             }
                             series.addEpisode(
@@ -226,32 +227,14 @@ module.exports = function (app) {
             //render the data array
             //RES.render('moviePage', {dataArray: dataArray, replacer: replacing});
 
-            parse(series,function(series){
-                RES.end(JSON.stringify(series));
-            })
-        });
-    }
-
-    function mutateCode(code,replacing) {
-        return eval(replacing);
-    }
-
-    function parse(series,callback) {
-
-        var MS = require('../../parsers/myshows');
-        var myShowsParser = new MS();
-        var TVDB = require("../../parsers/thetvdb");
-        var theTvDbParser = new TVDB("1F31F9C2BDB72379");
-
-        myShowsParser.show.searchForShow(series, function (obj) {
-            if (obj) {
-                series.merge(obj);
-            }
-            theTvDbParser.show.searchForShow(series, function (obj) {
-                series.merge(obj);
-                callback(series);
+            series.addShow(function (res) {
+                RES.end(JSON.stringify(res));
             });
         });
+    }
+
+    function mutateCode(code, replacing) {
+        return eval(replacing);
     }
 
     function getSeriesTitles(text) {

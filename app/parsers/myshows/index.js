@@ -133,7 +133,7 @@ function myShowsAPI() {
 
             else if (_this.util.compare(series.title_en, mss.title, series.title_ru, mss.ruTitle)) {
                 //assuming it's what we need
-                console.log("Item found by title (probably)"+JSON.stringify(mss));
+                console.log("Item found by title (probably)" + JSON.stringify(mss));
                 titleFound = true;
                 foundSeries = mss;
                 break;
@@ -142,7 +142,7 @@ function myShowsAPI() {
 
         if (titleFound) {
             console.log("Title found and updated successfully from the total of " + counter + " tries");
-            series.merge(_this.util.extractNeededData(foundSeries));
+            series.merge(_this.util.extractNeededData(series, foundSeries));
             return series;
         }
         //title not found
@@ -161,14 +161,13 @@ function myShowsAPI() {
         });
     }.bind(this);
 
-    this.util.extractNeededData = function (mss) {
-        var series = {};
+    this.util.extractNeededData = function (series, mss) {
         var is = require('../../util/is');
-        series.title = mss.title;
-
         if (mss.title && !is.russian(mss.title)) series.title_en = mss.title;
-        if (mss.ruTitle) series.title_ru = mss.ruTitle;
-        if (mss.image) series.poster = mss.image;
+        if (mss.ruTitle && is.russian(mss.ruTitle)) series.title_ru = mss.ruTitle;
+        if (mss.image) {
+            series.addPoster(mss.image);
+        }
         series.status = mss.status;
         series.kpid = mss.kinopoiskId;
         series.tvrageid = mss.tvrageId;

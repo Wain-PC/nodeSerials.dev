@@ -1,12 +1,14 @@
 var is = require('../is');
 
-function merge(obj2) {
+function merge(obj2, strictMode) {
     var obj1 = this;
+    if (!strictMode) strictMode = false;
+    else strictMode = true;
 
     for (var p in obj2) {
         try {
             // Property in destination object set; update its value.
-            if (obj2[p].constructor == Object) {
+            if (obj1[p].constructor == Object) {
                 obj1[p].merge = merge;
                 obj1[p].merge(obj2[p]);
 
@@ -16,7 +18,7 @@ function merge(obj2) {
                 obj1[p] = mergeMultiple(obj1[p], obj2[p]);
             }
             else {
-                if(is.function(obj1[p])) {
+                if (is.function(obj1[p])) {
                     continue;
                 }
                 obj1[p] = obj2[p];
@@ -25,16 +27,14 @@ function merge(obj2) {
 
         } catch (e) {
             // Property in destination object not set; create it and set its value.
-            obj1[p] = obj2[p];
+            if (!strictMode) obj1[p] = obj2[p];
+            else console.log("Property " + p + " doesn't exist. It won't be created with strict mode on");
 
         }
     }
 
     return obj1;
 }
-
-
-
 
 function mergeMultiple(obj1, obj2) {
     if (obj1 === obj2) return obj1;

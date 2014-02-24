@@ -5,14 +5,12 @@ module.exports = function (app) {
     PATH = PATH + PREFIX;
     var REQ, RES, NEXT;
     var Request = require('../../util/request');
-    var DB = require('../../database');
-    var USER_AGENT = 'Android;HD Serials v.1.7.0;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)';
+    var CONFIG = require('../../core/config');
+    var USER_AGENT = CONFIG.http.userAgent.mobile.android_hdserials;
     var RqGet = new Request(USER_AGENT, 'GET');
     var RqPost = new Request(USER_AGENT, 'POST');
     var BASE_URL = 'http://hdserials.galanov.net/backend/model.php';
-    //parser
-    var Parser = require('./parser.js');
-    Parser = new Parser();
+    var Series = require('../../core/series');
 
 
     function start(req, res, next) {
@@ -42,7 +40,6 @@ module.exports = function (app) {
         NEXT = next;
 
         RqGet.makeRequest(BASE_URL, rqData, onRequestFinished);
-
     }
 
     function subdirHandler(req, res, next) {
@@ -76,15 +73,16 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RqGet.makeRequest(BASE_URL, rqData, function(error, response, body) {
+        RqGet.makeRequest(BASE_URL, rqData, function (error, response, body) {
 
             var obj = JSON.parse(body);
             //if we've got the season number earlier, inject it to json
-            if(season) {
+            if (season) {
                 obj.season = season;
             }
-            var series = Parser.parse(obj, function (series) {
-                RES.end(JSON.stringify(series));
+            var series = getFilledSeries(obj);
+            series.addShow(function (res) {
+                RES.end(JSON.stringify(res));
             });
         });
     }
@@ -128,9 +126,9 @@ module.exports = function (app) {
                 reSeason2 = /(\d+).?Сезон/i,
                 se;
 
-            for(var i=0;i<resJSON.data.length;i++) {
-                if(resJSON.data[i].season) {
-                    resJSON.data[i].season = resJSON.data[i].season.replace(/\D/g,'');
+            for (var i = 0; i < resJSON.data.length; i++) {
+                if (resJSON.data[i].season) {
+                    resJSON.data[i].season = resJSON.data[i].season.replace(/\D/g, '');
                 }
             }
 
@@ -143,80 +141,100 @@ module.exports = function (app) {
         }
     }
 
+    function getFilledSeries(json) {
+        try {
+            var series = new Series();
+            var j = json;
+            injectedSeason = j.season;
+            j = j.data;
 
-    function getVideoLink(url, callback) {
-        var result_url = url,
-            fname;
-        RqGet.makeRequest(url, false, function (error, response, v) {
+            if (!j.found) throw new Error('Item not found');
 
-                if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
-                    //vk.com video
-                    if (v.match('This video has been removed from public access.')) {
-                        result_url = v.match('This video has been removed from public access.');
-                        return result_url;
+            var i, l, s, e, file;
+
+            series.setProperties(
+                {
+                    title_en: j.info.title_en,
+                    title_ru: j.info.title_ru,
+                    year: j.info.year,
+                    kpid: j.info.kp_id,
+                    description: j.info.description
+                });
+
+
+            l = j.files.length;
+            for (i = 0; i < l; i++) {
+                file = j.files[i];
+                s = file.season;
+                e = file.episode;
+
+                //wrong season or episode number provided, try to search title
+                if (!s || s == 0) {
+                    //if the season number has been passed manually
+                    if (injectedSeason) {
+                        s = injectedSeason;
                     }
-
-                    try {
-                        var video_host = v.match("var video_host = '(.+?)';")[1];
-                        var video_uid = v.match("var video_uid = '(.*)'")[1];
-                        var video_vtag = v.match("var video_vtag = '(.*)'")[1];
-                        var video_no_flv = v.match("video_no_flv =(.*);")[1];
-                        var video_max_hd = v.match("var video_max_hd = '(.*)'")[1];
-
+                    else {
+                        s = getSeasonNumber(file.title);
                     }
-                    catch (err) {
-                        console.log("Error while getting video:" + err.message);
-                        return false;
-                    }
+                }
 
-                    if (video_no_flv == 1) {
-                        switch (video_max_hd) {
-                            case "0":
-                                fname = "240.mp4";
-                                break;
-                            case "1":
-                                fname = "360.mp4";
-                                break;
-                            case "2":
-                                fname = "480.mp4";
-                                break;
-                            case "3":
-                                fname = "720.mp4";
-                                break;
+                if (!e || e == 0) {
+                    e = getEpisodeNumber(file.title);
+                }
+
+                series.addEpisode(
+                    {
+                        seasonNumber: s,
+                        episodeNumber: e,
+                        video: {
+                            url: file.url,
+                            type: file.type
                         }
-                        result_url = video_host + "u" + video_uid + "/videos/" + video_vtag + "." + fname;
-                    } else {
-                        var vkid = v.match("vkid=(.*)&" [1]);
-                        fname = "vk.flv";
-                        result_url = "http://" + video_host + "/assets/videos/" + video_vtag + vkid + "." + fname;
-                    }
-                    if (callback) callback(result_url);
-
-                }
-                //endif
-                else {
-                    //hdserials video (moonwalk.cc load balancer)
-                    var video_token = /video_token: '(.+?)'/.exec(v)[1];
-                    var video_secret = /video_secret: '(.+?)'/.exec(v)[1];
-                    console.log("VIdeo_token:" + v);
-                    RqPost.makeRequest('http://moonwalk.cc/sessions/create_session', {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
-                        resJSON = JSON.parse(resJSON);
-                        result_url = 'hls:' + resJSON.manifest_m3u8;
-                        if (callback) callback(result_url);
                     });
+            }
 
-
-                }
-                //end else
-
-            },
-            {
-                headers: {
-                    'User-Agent': 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'
-                }
-            });
+            return series;
+        }
+        catch (err) {
+            console.log("Error while AllNewParsing:" + err.message);
+            return false;
+        }
     }
 
+    function getSeasonNumber(text) {
+        var s;
+        var reSeason = /(\d+).?Сезон/i;
+        var se = reSeason.exec(text);
+        if (se) s = se[1];
+        else {
+            reSeason = /Сезон.?(\d+)/i;
+            se = reSeason.exec(text);
+            if (se) s = se[1];
+        }
+        //nothing worked. Assume it's season 1
+        if (!s || s == 0) {
+            s = 1;
+        }
+        return s;
+    }
+
+    function getEpisodeNumber(text) {
+        var s;
+        var reSeason = /(\d+).?Серия/i;
+        var se = reSeason.exec(text);
+        if (se) s = se[1];
+        else {
+            reSeason = /Серия.?(\d+)/i;
+            se = reSeason.exec(text);
+            if (se) s = se[1];
+        }
+        //nothing worked. Assume it's season 1
+        if (!s || s == 0) {
+            s = 1;
+        }
+        return s;
+    }
 
     //making paths
     app.get(PATH, start);

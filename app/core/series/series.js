@@ -1,9 +1,10 @@
 var Series = function () {
 
-    //this.merge = require('../../util/merge');
+    //@TODO: support for mixed episodes (like 1-2 or 1,2)
     //setting base properties
     this.title_en = "",
         this.title_ru = "",
+        this.description = "",
         this.imdbid = 0,
         this.kpid = 0,
         this.thetvdbid = 0;
@@ -69,7 +70,6 @@ var Series = function () {
 };
 
 Series.prototype.setProperties = function (obj) {
-    //@TODO: this is DEFINITELY not safe AT ALL. Need to implement some kind of strict mode
     this.merge(obj, true); //merging in strict mode (no new properties will be created during merge)
 };
 
@@ -146,16 +146,12 @@ Series.prototype.addPoster = function (posterURL) {
     //poster can be either string or array
     var is = require('../../util/is');
     //got actual poster
-    if (is.string(posterURL) && ifImage(posterURL)) {
+    if (is.imageURL(posterURL)) {
         this.poster.push(posterURL);
         return true;
     }
     console.log("No valid image URL found for poster. Poster NOT added.");
     return false;
-
-    function ifImage(url) {
-        return /^https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+\.(?:jpg|jpeg|png)$/i.test(url);
-    }
 };
 
 Series.prototype.addShow = function (callback) {
@@ -167,10 +163,11 @@ Series.prototype.addShow = function (callback) {
         return false;
     }
 
+    var CONFIG = require('../../core/config');
     var MS = require('../../parsers/myshows');
     var myShowsParser = new MS();
     var TVDB = require("../../parsers/thetvdb");
-    var theTvDbParser = new TVDB("1F31F9C2BDB72379");
+    var theTvDbParser = new TVDB(CONFIG.parsers.thetvdb.api_key);
 
     myShowsParser.show.searchForShow(this, function (obj) {
         if (obj) _this.merge(obj);

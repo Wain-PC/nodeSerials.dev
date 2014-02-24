@@ -1,0 +1,4 @@
+{
+    "name": "nodeserials-core-frontend",
+    "main": "./frontend.js"
+}

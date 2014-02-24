@@ -32,4 +32,8 @@ module.exports = function (app, db) {
         response.render('mainPage', {dataArray: modulesList});
     });
 
+    app.get("/frontend", function (request, response) {
+        require('./core/frontend')(app, db);
+    });
+
 };

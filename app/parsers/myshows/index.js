@@ -34,28 +34,6 @@ function myShowsAPI() {
             'genres': '/genres/',
             'shows_top': '/shows/top/',
             'profile': '/profile/'
-        },
-        profile: {
-            'login': '/profile/login?login=%s&password=%s',
-            'shows': '/profile/shows/',
-            'watched-episodes': '/profile/shows/%d/',
-            'next-episodes': '/profile/episodes/next/',
-            'unwatched-episodes': '/profile/episodes/unwatched/',
-            'check-episode': '/profile/episodes/check/%d',
-            'check-episode-rating': '/profile/episodes/check/%d?rating=%d',
-            'uncheck-episode': '/profile/episodes/uncheck/%d',
-            'rate-episode': '/profile/episodes/rate/%d/%d',
-            'sync-episodes': '/profile/shows/%d/sync?episodes=%s',
-            'sync-episodes-delta': '/profile/shows/%d/episodes?check=%s&uncheck=%s',
-            'show-status': '/profile/shows/%d/%s',
-            'show-rating': '/profile/shows/%d/rate/%d',
-            'favorites-list': '/profile/episodes/favorites/list/',
-            'favorites-add': '/profile/episodes/favorites/add/%d',
-            'favorites-remove': '/profile/episodes/favorites/remove/%d',
-            'ignored-list': '/profile/episodes/ignored/list/',
-            'ignored-add': '/profile/episodes/ignored/add/%d',
-            'ignored-remove': '/profile/episodes/ignored/remove/%d',
-            'friends-news': '/profile/news/'
         }
     };
 
@@ -104,7 +82,6 @@ function myShowsAPI() {
             //some error happened
             console.log("ERR hapened in myshows parser:" + err);
             callback(false);
-            return;
         }
     }.bind(this);
 
@@ -142,7 +119,7 @@ function myShowsAPI() {
 
         if (titleFound) {
             console.log("Title found and updated successfully from the total of " + counter + " tries");
-            series.merge(_this.util.extractNeededData(series, foundSeries));
+            series.merge(_this.util.extractNeededData(series, foundSeries), true);
             return series;
         }
         //title not found
@@ -165,7 +142,7 @@ function myShowsAPI() {
         var is = require('../../util/is');
         if (mss.title && !is.russian(mss.title)) series.title_en = mss.title;
         if (mss.ruTitle && is.russian(mss.ruTitle)) series.title_ru = mss.ruTitle;
-        if (mss.image) {
+        if (is.imageURL(mss.image)) {
             series.addPoster(mss.image);
         }
         series.status = mss.status;
@@ -174,7 +151,6 @@ function myShowsAPI() {
         series.imdbid = mss.imdbId;
         return series;
     }
-
 }
 
 module.exports = myShowsAPI;

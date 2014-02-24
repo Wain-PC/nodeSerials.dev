@@ -19,8 +19,12 @@ var Is = {
         return (typeof(n) === 'function');
     },
 
-    russian: function(n) {
+    russian: function (n) {
         return Is.string(n) && /[А-ЯЁ]/gi.test(n);
+    },
+
+    imageURL: function (url) {
+        return this.string(url) && /^https?:\/\/(?:[a-z\-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+\.(?:jpg|jpeg|png)$/i.test(url);
     }
 };
 

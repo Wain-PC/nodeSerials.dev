@@ -1,4 +1,4 @@
 {
     "name": "nodeserials-core-config",
-    "main": "./series.js"
+    "main": "./config.js"
 }

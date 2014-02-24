@@ -1,10 +1,10 @@
-//@TODO: Redesign jade templates positioning
-module.exports = function (app) {
+module.exports = function (app, db) {
 
     var PATH = '/modules/';
     var PREFIX = 'newhdk';
     PATH = PATH + PREFIX;
-    var USER_AGENT = 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14';  //@TODO: move this to config
+    var CONFIG = require('../../core/config');
+    var USER_AGENT = CONFIG.http.userAgent.desktop.opera;
     var Request = require('../../util/request');
     var RqGet = new Request(USER_AGENT, 'GET');
     var RqPost = new Request(USER_AGENT, 'POST');
@@ -290,158 +290,6 @@ module.exports = function (app) {
         return s;
     }
 
-
-    function getMovie(req, res, next) {
-
-        var REQ = req,
-            RES = res,
-            NEXT = next;
-
-        var url = decodeURIComponent(REQ.params.url);
-        var replacer = decodeURIComponent(REQ.query.replacer);
-
-        getPlayerURL(url, replacer, function (video) {
-            if (!video) {
-                RES.end("Это видео недоступно для просмотра");
-                return false;
-            }
-
-            RES.end("Got VURL:" + video);
-            //RES.json({'videoURL': video});
-        });
-
-
-    }
-
-    function getPlayerURL(code, replacing, callback) {
-        var video_url = false;
-
-        if (code.search(/^oid=/) != -1) {
-            code = eval(replacing);
-            video_url = 'http://vk.com/video_ext.php?' + code;
-
-            //this CAN be empty (false returned if the video is not available)
-            getVideoLink(video_url, function (video_url) {
-                debug("LINK:" + video_url);
-                if (callback) callback(video_url);
-            });
-        }
-
-
-        else if (code.search(/moonwalk/) != -1) {
-            debug("MW");
-            getVideoLink(code, function (video_url) {
-                if (callback) callback(video_url);
-            });
-        }
-
-        else if (code.search(/kset.kz/i) != -1) {
-            code = code.replace(/([^a-z]{1})width=(['"\\]*)[0-9]+(['"\\]*)/gi, "$1width=$2" + viWidth + "$3").replace(/height=(['"\\]*)[0-9]+(['"\\]*)/gi, "height=$1" + viHeight + "$2");
-            video_url = '<iframe src="http://www.autobonus.kz/kset.php?code=' + encodeURIComponent(code) + '" ' + ' frameborder="0"></iframe>';
-        }
-        else if (code.search(/<(object|embed) /i) == 0) {
-            code = code.replace(/([^a-z]{1})width=(['"\\]*)[0-9]+(['"\\]*)/gi, "$1width=$2" + viWidth + "$3").replace(/height=(['"\\]*)[0-9]+(['"\\]*)/gi, "height=$1" + viHeight + "$2");
-            video_url = code;
-        }
-        else if (code.search(/\.(3gp|aac|f4v|flv|m4a|mp3|mp4)/i) != -1) {
-            if (!document.getElementById('uppod_player')) {
-
-                video_url = code;
-            }
-            else {
-                video_url = code;
-            }
-        }
-        else if (code.search(/video\.rutube\.ru/i) != -1) {
-            code = code.replace(/^.*?(http:[^"]+).*?$/, '$1');
-            video_url = code;
-        }
-        else if (code.search('youtube') != -1) {
-            //youtube video
-            code = code.match(/.*youtube.*\/embed\/([\S]*)\?autoplay/)[1];
-            debug('YOUTUBE!: ' + code);
-            video_url = 'youtube:video:' + code;
-
-        }
-
-        return video_url;
-    }
-
-    function getVideoLink(url, callback) {
-        var result_url = url,
-            fname;
-        RqGet.makeRequest(url, false, function (error, response, v) {
-
-                if ((url.indexOf("vk.com") > 0) || (url.indexOf("/vkontakte.php?video") > 0) || (url.indexOf("vkontakte.ru/video_ext.php") > 0) || (url.indexOf("/vkontakte/vk_kinohranilishe.php?id=") > 0)) {
-                    //vk.com video
-                    if (v.match('This video has been removed from public access.')) {
-                        result_url = v.match('This video has been removed from public access.');
-                        return result_url;
-                    }
-
-                    try {
-                        var video_host = v.match("var video_host = '(.+?)';")[1];
-                        var video_uid = v.match("var video_uid = '(.*)'")[1];
-                        var video_vtag = v.match("var video_vtag = '(.*)'")[1];
-                        var video_no_flv = v.match("video_no_flv =(.*);")[1];
-                        var video_max_hd = v.match("var video_max_hd = '(.*)'")[1];
-                        console.log(video_no_flv);
-
-                    }
-                    catch (err) {
-                        console.log("Error while getting video:" + err.message);
-                        return false;
-                    }
-
-                    if (video_no_flv == 1) {
-                        switch (video_max_hd) {
-                            case "0":
-                                fname = "240.mp4";
-                                break;
-                            case "1":
-                                fname = "360.mp4";
-                                break;
-                            case "2":
-                                fname = "480.mp4";
-                                break;
-                            case "3":
-                                fname = "720.mp4";
-                                break;
-                        }
-                        result_url = video_host + "u" + video_uid + "/videos/" + video_vtag + "." + fname;
-                    } else {
-                        var vkid = v.match("vkid=(.*)&" [1]);
-                        fname = "vk.flv";
-                        result_url = "http://" + video_host + "/assets/videos/" + video_vtag + vkid + "." + fname;
-                    }
-                    if (callback) callback(result_url);
-
-                }
-                //endif
-                else {
-                    //hdserials video (moonwalk.cc load balancer)
-                    var video_token = /video_token: '(.+?)'/.exec(v)[1];
-                    var video_secret = /video_secret: '(.+?)'/.exec(v)[1];
-                    console.log("VIdeo_token:" + v);
-                    RqPost.makeRequest('http://moonwalk.cc/sessions/create_session', {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
-                        resJSON = JSON.parse(resJSON);
-                        result_url = 'hls:' + resJSON.manifest_m3u8;
-                        if (callback) callback(result_url);
-                    });
-
-
-                }
-                //end else
-
-            },
-            {
-                headers: {
-                    'User-Agent': 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14'
-                }
-            });
-    }
-
-
     function listScraper(respond, encodeURL) {
 
 
@@ -503,7 +351,7 @@ module.exports = function (app) {
     app.get(PATH, genreList);
     app.get(PATH + '/genre/:genre', moviesList);
     app.get(PATH + '/item/:url', moviePage);
-    app.get(PATH + '/item/get/:url', getMovie);
+    //app.get(PATH + '/item/get/:url', getMovie);
     app.get(PATH + '/uploads/*', getPoster);
 
 };

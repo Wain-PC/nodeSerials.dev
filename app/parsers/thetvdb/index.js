@@ -30,7 +30,7 @@ function TheTvDbParser(key) {
         if (series.imdbid) {
             this.api(key).getSeriesByImdbId(series.imdbid, function (err, res) {
                 console.log("theTVDB Searching by IMDBID:" + series.imdbid);
-                if(err || !seriesFound(res)) {
+                if (err || !seriesFound(res)) {
                     _this.api(key).getSeries(showTitle, function (err, res) {
                         console.log("theTVDB Searching by show title:" + showTitle);
                         mainCallback(_this, err, res, callback, series);
@@ -194,12 +194,13 @@ function TheTvDbParser(key) {
             episodeNumber,
             tvdbEpisode,
             episode,
-            i;
+            i,
+            baseImageURL = 'http://thetvdb.com/banners/';
 
         var is = require('../../util/is');
 
         episodeList = tvdbSeries.Data.Episode;
-        if(!episodeList) {
+        if (!episodeList) {
             console.log("Show found on theTVDB, but it has no episodes");
             return false;
         }
@@ -222,6 +223,11 @@ function TheTvDbParser(key) {
             series.imdbid = series.imdbid.substr(2);
         }
 
+        //add poster
+        if (is.imageURL(baseImageURL + tvdbSeries.Data.Series.poster)) {
+            series.addPoster(baseImageURL + tvdbSeries.Data.Series.poster);
+        }
+
         //cycle through episodes of this series
         for (i = 0; i < episodeQuantity; i++) {
             tvdbEpisode = episodeList[i];
@@ -242,10 +248,9 @@ function TheTvDbParser(key) {
             console.log("Updating info for season " + seasonNumber + " ep:" + episodeNumber);
             episode.name = tvdbEpisode.EpisodeName;
             episode.description = tvdbEpisode.Overview;
-                if(is.string(tvdbEpisode.filename)) {
-                    //@TODO: change this hardcode somehow
-                    episode.thumbnail = 'http://thetvdb.com/banners/' + tvdbEpisode.filename;
-                }
+            if (is.imageURL(baseImageURL + tvdbEpisode.filename)) {
+                episode.thumbnail = baseImageURL + tvdbEpisode.filename;
+            }
 
             //save episode
             series.season[seasonNumber].episode[episodeNumber] = episode;

@@ -1,4 +1,4 @@
 {
-    "name": "nodeserials-thetvdb",
+    "name": "nodeserials-parsers-thetvdb",
     "main": "./index.js"
 }

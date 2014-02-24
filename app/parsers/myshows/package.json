@@ -1,4 +1,4 @@
 {
-    "name": "nodeserials-myshows",
+    "name": "nodeserials-parsers-myshows",
     "main": "./index.js"
 }

@@ -5,18 +5,25 @@ function merge(obj2, strictMode) {
     if (!strictMode) strictMode = false;
     else strictMode = true;
 
+    //array merging, prevent incorrect array merging by properties
+    if (is.array(obj1) || is.array(obj2)) {
+        return mergeMultiple(obj1, obj2);
+    }
+
     for (var p in obj2) {
         try {
+            //if one of the props is an array, join the values to bigger array
+            if (is.array(obj1[p]) || is.array(obj2[p])) {
+                obj1[p] = mergeMultiple(obj1[p], obj2[p]);
+            }
+
             // Property in destination object set; update its value.
-            if (obj1[p].constructor == Object) {
+            else if (obj1[p].constructor == Object) {
                 obj1[p].merge = merge;
                 obj1[p].merge(obj2[p]);
 
             }
-            //if one of the props is an array, join the values to bigger array
-            else if (is.array(obj1[p]) || is.array(obj2[p])) {
-                obj1[p] = mergeMultiple(obj1[p], obj2[p]);
-            }
+
             else {
                 if (is.function(obj1[p])) {
                     continue;

@@ -7,6 +7,7 @@ var Series = function () {
         this.description = "",
         this.imdbid = 0,
         this.kpid = 0,
+        this.year,
         this.thetvdbid = 0;
 
     //setting arrays structure
@@ -19,7 +20,7 @@ var Series = function () {
     var totalEpisodes = 0;
     this.getEpisodesCount = function () {
         return totalEpisodes;
-    }
+    };
 
     this.createEpisode = function (s, e, video) {
         //create season (if not exists)
@@ -111,7 +112,7 @@ Series.prototype.addEpisode = function (obj) {
     else failedParams.push('video');
 
     if (checkSuccessCounter != 3) {
-        console.log("Object check failed, not all params present. The following params are wrong or not provided:" + JSON.stringify(failedParams));
+        console.log("Object check failed, not all params present. The following params are wrong or not provided:" + failedParams);
         return false;
     }
     //now checking for existence
@@ -121,20 +122,20 @@ Series.prototype.addEpisode = function (obj) {
         //console.log('Season exists');
         if (is.object(this.season[seNum].episode[epNum])) {
             //episode exists
-            console.log("Episode " + epNum + " of season " + seNum + " already exists. Overwriting!");
+            //console.log("Episode " + epNum + " of season " + seNum + " already exists. Overwriting!");
             //updating info
             result = this.updateEpisode(seNum, epNum, video);
         }
         else {
             //Season exists, episode doesn't exist, creating one
-            console.log('Season exists, episode doesnt: creating one');
+            //console.log('Season exists, episode doesnt: creating one');
             result = this.createEpisode(seNum, epNum, video);
         }
     }
     //season doesn't exist
     else {
         //create season, then create episode
-        console.log('Create season AND episode');
+        //console.log('Create season AND episode');
         this.season[seNum] = {};
         result = this.createEpisode(seNum, epNum, video);
     }
@@ -154,11 +155,25 @@ Series.prototype.addPoster = function (posterURL) {
     return false;
 };
 
+//this method can get both array and string
+Series.prototype.addPeople = function (people) {
+    var is = require('../../util/is');
+    var merge = require('../../util/merge');
+    if (!is.array(people) && !is.string(people)) {
+        console.log("Adding people failed. Provided parameter is neither array or string");
+        return false;
+    }
+    //no matter if it's an array or string, one method will do the trick
+    merge.call(this.people, people);
+    return true;
+};
+
 Series.prototype.addShow = function (callback) {
     //count total length of episodes here
     //if no episodes present, parsing shouldn't be done
     var _this = this;
     if (this.getEpisodesCount() == 0) {
+        console.log("Series has no episodes, getting full info aborted!");
         callback(this);
         return false;
     }
@@ -173,10 +188,30 @@ Series.prototype.addShow = function (callback) {
         if (obj) _this.merge(obj);
         theTvDbParser.show.searchForShow(_this, function (obj) {
             if (obj) _this.merge(obj);
-            callback(_this);
+            _this.saveSeries(callback);
         });
     });
 };
+
+
+Series.prototype.saveSeries = function (callback) {
+
+    try {
+        callback(this);
+    }
+    catch (err) {
+
+    }
+};
+
+var sayAllDone = function (err, items) {
+    if (!err) {
+        console.log("DB WRITE DONE:" + JSON.stringify(items));
+        return true;
+    }
+    else console.log("DB WRITE ERROR:" + JSON.stringify(err));
+    return false;
+}
 
 Series.prototype.merge = require('../../util/merge');
 

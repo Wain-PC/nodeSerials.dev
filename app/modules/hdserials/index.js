@@ -152,6 +152,8 @@ module.exports = function (app) {
 
             var i, l, s, e, file;
 
+            //do non-cyclic stuff
+
             series.setProperties(
                 {
                     title_en: j.info.title_en,
@@ -161,7 +163,14 @@ module.exports = function (app) {
                     description: j.info.description
                 });
 
+            //add people found
+            //adding actors
+            l = j.actors.length;
+            for (i = 0; i < l; i++) {
+                series.addPeople(j.actors[i].title_ru);
+            }
 
+            //iterate over found episodes
             l = j.files.length;
             for (i = 0; i < l; i++) {
                 file = j.files[i];

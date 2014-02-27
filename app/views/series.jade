@@ -1,0 +1,8 @@
+extends template
+block common-categories
+    for season in series.seasons
+        p
+            h3= 'Season ' + season.values.number
+                for episode in season.episodes
+                    p
+                        a(href=episode.videos[0].values.url)= episode.values.title +' ('+ episode.values.number +')'

@@ -1,0 +1,5 @@
+extends template
+block common-categories
+    for item in dataArray
+        p
+            a(href='series/'+item.id)= item.title_ru

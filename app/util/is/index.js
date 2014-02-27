@@ -8,7 +8,7 @@ var Is = {
     },
 
     string: function (n) {
-        return (typeof n == 'string' || n instanceof String);
+        return (typeof n == 'string' || n instanceof String && n.length != 0);
     },
 
     object: function (n) {

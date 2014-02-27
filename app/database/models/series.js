@@ -9,7 +9,8 @@ module.exports = function (db, DataTypes) {
             tvrageid: DataTypes.INTEGER,
             status: DataTypes.STRING,
             description: DataTypes.TEXT
-        });
+        },
+        {freezeTableName: true});
 
     return Series;
 };

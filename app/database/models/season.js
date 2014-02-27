@@ -4,7 +4,8 @@ module.exports = function (db, DataTypes) {
             number: DataTypes.INTEGER,
             status: DataTypes.STRING,
             description: DataTypes.TEXT
-        });
+        },
+        {freezeTableName: true});
 
     return Season;
 };

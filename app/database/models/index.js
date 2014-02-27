@@ -10,7 +10,7 @@ var credits = {
 
 // initialize database connection
 var connectionString = 'mysql://' + credits.user + ':' + credits.password + '@' + credits.host + '/' + credits.database;
-var sequelize = new Sequelize(connectionString);
+var sequelize = new Sequelize(connectionString, {logging: false});
 
 
 // load models
@@ -37,7 +37,7 @@ models.forEach(function (model) {
 })(module.exports);
 
 //sync database
-sequelize.sync({force: true})
+sequelize.sync()
     .success(function () {
         console.log("Sync success!");
     })

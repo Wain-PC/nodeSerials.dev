@@ -7,7 +7,8 @@ module.exports = function (db, DataTypes) {
             air_date: DataTypes.DATE,
             status: DataTypes.STRING,
             description: DataTypes.TEXT
-        });
+        },
+        {freezeTableName: true});
 
     return Episode;
 };

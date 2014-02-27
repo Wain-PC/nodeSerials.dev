@@ -5,7 +5,8 @@ module.exports = function (db, DataTypes) {
             url: DataTypes.STRING,
             type: DataTypes.STRING,
             source: DataTypes.STRING
-        });
+        },
+        {freezeTableName: true});
 
     return Video;
 };

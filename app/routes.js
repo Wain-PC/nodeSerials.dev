@@ -9,7 +9,7 @@
 var fs = require('fs');
 var util = require('util');
 
-module.exports = function (app, db) {
+module.exports = function (app) {
 
     var modulesFolder = 'modules';
     var modulesList = [];
@@ -23,7 +23,7 @@ module.exports = function (app, db) {
         if (stat && stat.isDirectory()) {
             console.log("Loading module " + file);
             modulesList.push(file + '/');
-            require('./' + modulesFolder + '/' + file)(app, db);
+            require('./' + modulesFolder + '/' + file)(app);
         }
     });
 
@@ -33,7 +33,7 @@ module.exports = function (app, db) {
     });
 
     app.get("/frontend", function (request, response) {
-        require('./core/frontend')(app, db);
+        require('./core/frontend')(app);
     });
 
 };

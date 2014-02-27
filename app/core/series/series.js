@@ -1,4 +1,4 @@
-var Series = function () {
+var Series = function (app) {
 
     //@TODO: support for mixed episodes (like 1-2 or 1,2)
     //setting base properties
@@ -22,6 +22,10 @@ var Series = function () {
         return totalEpisodes;
     };
 
+    this.getApp = function () {
+        return app;
+    };
+
     this.createEpisode = function (s, e, video) {
         //create season (if not exists)
         var is = require('../../util/is');
@@ -36,7 +40,6 @@ var Series = function () {
         if (!is.object(this.season[s])) {
             this.season[s] = {};
         }
-        ;
 
         //create episode array (if not exists)
         if (!this.season[s].episode) {
@@ -197,10 +200,100 @@ Series.prototype.addShow = function (callback) {
 Series.prototype.saveSeries = function (callback) {
 
     try {
+        var _this = this;
+        var is = require('../../util/is');
+        var models = this.getApp().get('models');
+        var ModelSeries = models.Series;
+        var ModelSeason = models.Season;
+        var ModelEpisode = models.Episode;
+        var ModelVideo = models.Video;
+
+        var mSeries = ModelSeries.create({
+            title_ru: _this.title_ru,
+            title_en: _this.title_en,
+            imdbid: _this.imdbid,
+            kpid: _this.kpid,
+            thetvdbid: _this.thetvdbid,
+            tvrageid: _this.tvrageid,
+            status: _this.status,
+            description: _this.description
+        });
+
+        var mSeason,
+            mEpisode,
+            mVideo,
+            i, j, k;
+
+        mSeries.success(function (series) {
+            //save Seasons here
+            console.log("Series saved:" + _this.season.length);
+            //save seasons
+            for (i = 0; i < _this.season.length; i++) {
+                if (!is.object(_this.season[i])) continue;
+                //got season
+                console.log("Creating season " + i);
+                mSeason = ModelSeason.create({
+                    number: i,
+                    status: _this.status,
+                    description: _this.description
+                }).success(function (season) {
+                        var seasonNumber = season.values.number;
+                        season.setSeries(series)
+                            .success(function () {
+                                console.log("Saved season " + seasonNumber);
+                            });
+
+                        //now save episodes from each season
+                        for (j = 0; j < _this.season[seasonNumber].episode.length; j++) {
+                            if (!is.object(_this.season[seasonNumber].episode[j])) continue;
+                            //got episode
+                            mEpisode = ModelEpisode.create({
+                                number: j,
+                                title: _this.season[seasonNumber].episode[j].name,
+                                duration: 40,
+                                air_date: new Date(),
+                                description: _this.season[seasonNumber].episode[j].description
+                            })
+                                .success(function (episode) {
+                                    var episodeNumber = episode.values.number;
+                                    episode.setSeason(season)
+                                        .success(function () {
+                                            console.log("Saved episode " + seasonNumber + 'x' + episodeNumber);
+                                        });
+
+                                    //now save videos for each episode
+                                    for (k = 0; k < _this.season[seasonNumber].episode[episodeNumber].video.length; k++) {
+                                        if (!is.object(_this.season[seasonNumber].episode[episodeNumber].video[k])) continue;
+                                        //got video
+                                        mVideo = ModelVideo.create({
+                                            title: episode.values.title,
+                                            url: _this.season[seasonNumber].episode[episodeNumber].video[k].url,
+                                            type: _this.season[seasonNumber].episode[episodeNumber].video[k].type
+                                        }).success(function (video) {
+                                                video.setEpisode(episode)
+                                                    .success(function () {
+                                                        console.log("Saved video with url" + video.values.url + " for " + seasonNumber + 'x' + episodeNumber);
+                                                    });
+                                            });
+                                    }
+                                });
+                        }
+                    })
+                    .error(function (err) {
+                        console.log('Season save fail:' + err);
+                    });
+            }
+        });
+
+        mSeries.error(function (err) {
+            console.log('ERR DB:' + err);
+        });
+
+
         callback(this);
     }
     catch (err) {
-
+        console.log("ERR HAPPENED:" + err);
     }
 };
 

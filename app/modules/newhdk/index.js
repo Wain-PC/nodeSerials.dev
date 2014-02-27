@@ -1,4 +1,4 @@
-module.exports = function (app, db) {
+module.exports = function (app) {
 
     var PATH = '/modules/';
     var PREFIX = 'newhdk';
@@ -89,7 +89,7 @@ module.exports = function (app, db) {
         var i = 0,
             j = 0;
         var videoURL;
-        var series = new Series();
+        var series = new Series(app);
 
         var REQ = req,
             RES = res,

@@ -16,7 +16,9 @@ var sequelize = new Sequelize(connectionString);
 // load models
 var models = [
     'Series',
-    'Season'
+    'Season',
+    'Episode',
+    'Video'
 ];
 models.forEach(function (model) {
     module.exports[model] = sequelize.import(__dirname + '/' + model);
@@ -25,7 +27,23 @@ models.forEach(function (model) {
 // describe relationships
 (function (m) {
     m.Series.hasMany(m.Season, {as: 'Seasons'});
+    m.Season.belongsTo(m.Series, {as: 'Series'});
+
+    m.Season.hasMany(m.Episode, {as: 'Episodes'});
+    m.Episode.belongsTo(m.Season, {as: 'Season'});
+
+    m.Episode.hasMany(m.Video, {as: 'Videos'});
+    m.Video.belongsTo(m.Episode, {as: 'Episode'});
 })(module.exports);
+
+//sync database
+sequelize.sync({force: true})
+    .success(function () {
+        console.log("Sync success!");
+    })
+    .error(function (err) {
+        console.log("Sync error!" + err);
+    });
 
 // export connection
 module.exports.sequelize = sequelize;

@@ -143,7 +143,7 @@ module.exports = function (app) {
 
     function getFilledSeries(json) {
         try {
-            var series = new Series();
+            var series = new Series(app);
             var j = json;
             injectedSeason = j.season;
             j = j.data;

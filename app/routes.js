@@ -22,10 +22,13 @@ module.exports = function (app) {
         var stat = fs.statSync(__dirname + '/' + modulesFolder + '/' + file);
         if (stat && stat.isDirectory()) {
             console.log("Loading module " + file);
-            modulesList.push(file + '/');
+            modulesList.push('modules/' + file + '/');
             require('./' + modulesFolder + '/' + file)(app);
         }
     });
+
+    //add frontend as well
+    modulesList.push('frontend/latest');
 
     app.get("/", function (request, response) {
         console.log(JSON.stringify(modulesList));

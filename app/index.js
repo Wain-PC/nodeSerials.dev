@@ -14,10 +14,12 @@ app.use(app.router);
 
 //db connection and models
 app.set('models', require('./database/models'));
+
+//routing
 require('./routes.js')(app);
 require('./core/frontend')(app);
 
-//after all. handle 404 error
+//after all, handle 404 error
 console.log("404 listener add");
 app.all("*", function (request, response) {
     response.statusCode = 404;

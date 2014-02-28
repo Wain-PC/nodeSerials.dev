@@ -1,8 +1,8 @@
 extends template
 block common-categories
-    for season in series.seasons
+    for season in series.season
         p
             h3= 'Season ' + season.values.number
-                for episode in season.episodes
+                for episode in season.episode
                     p
-                        a(href=episode.videos[0].values.url)= episode.values.title +' ('+ episode.values.number +')'
+                        a(href=episode.video[0].values.url)= episode.values.title +' ('+ episode.values.number +')'

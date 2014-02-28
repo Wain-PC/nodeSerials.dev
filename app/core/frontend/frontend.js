@@ -15,7 +15,7 @@ module.exports = function (app) {
         var res = [];
         Series.findAndCountAll({
             order: 'id DESC',
-            limit: 10
+            limit: limit
         }).success(function (result) {
                 callback(result.rows);
             });
@@ -33,16 +33,16 @@ module.exports = function (app) {
                 id: id
             },
             include: [
-                {model: this.model.Season, as: 'Seasons',
+                {model: this.model.Season, as: 'Season',
                     include: [
-                        {model: this.model.Episode, as: 'Episodes',
+                        {model: this.model.Episode, as: 'Episode',
                             include: [
-                                {model: this.model.Video, as: 'Videos'}
+                                {model: this.model.Video, as: 'Video'}
                             ]}
                     ]}
             ]
         }).success(function (series) {
-                console.log(series.seasons[0].episodes[0].values);
+                console.log(series.season[0].episode[0].values);
                 callback(series.values);
             });
     };
@@ -65,7 +65,7 @@ module.exports = function (app) {
 
     app.get("/frontend/latest", function (request, response) {
         var f = new Frontend(app);
-        f.getLatestSeries(10, function (res) {
+        f.getLatestSeries(100, function (res) {
             response.render('seriesList',
                 { dataArray: res, rawData: JSON.stringify(res)}
             );

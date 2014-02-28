@@ -24,15 +24,15 @@ models.forEach(function (model) {
     module.exports[model] = sequelize.import(__dirname + '/' + model);
 });
 
-// describe relationships
+// describe relationships between models
 (function (m) {
-    m.Series.hasMany(m.Season, {as: 'Seasons'});
+    m.Series.hasMany(m.Season, {as: 'Season'});
     m.Season.belongsTo(m.Series, {as: 'Series'});
 
-    m.Season.hasMany(m.Episode, {as: 'Episodes'});
+    m.Season.hasMany(m.Episode, {as: 'Episode'});
     m.Episode.belongsTo(m.Season, {as: 'Season'});
 
-    m.Episode.hasMany(m.Video, {as: 'Videos'});
+    m.Episode.hasMany(m.Video, {as: 'Video'});
     m.Video.belongsTo(m.Episode, {as: 'Episode'});
 })(module.exports);
 
@@ -47,3 +47,4 @@ sequelize.sync()
 
 // export connection
 module.exports.sequelize = sequelize;
+module.exports.Sequelize = Sequelize;

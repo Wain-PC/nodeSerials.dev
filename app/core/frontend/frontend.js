@@ -1,21 +1,17 @@
 module.exports = function (app) {
 
     var Frontend = function (app) {
-
-        this.getApp = function () {
-            return app;
-        };
-
-        //this is private in order not to let access database directly from the outside
-        var models = this.getApp().get('models');
-
-        this.getModels = function () {
-            return models;
-        };
+        var models = app.get('models');
+        this.model = {};
+        this.model.Series = models.Series;
+        this.model.Season = models.Season;
+        this.model.Episode = models.Episode;
+        this.model.Video = models.Video;
+        this.S = models.Sequelize;
     };
 
     Frontend.prototype.getLatestSeries = function (limit, callback) {
-        var Series = this.getModels().Series;
+        var Series = this.model.Series;
         var res = [];
         Series.findAndCountAll({
             order: 'id DESC',
@@ -26,10 +22,10 @@ module.exports = function (app) {
     };
 
     Frontend.prototype.getSeriesById = function (id, callback) {
-        var Series = this.getModels().Series;
-        var Season = this.getModels().Season;
-        var Episode = this.getModels().Episode;
-        var Video = this.getModels().Video;
+        var Series = this.model.Series;
+        var Season = this.model.Season;
+        var Episode = this.model.Episode;
+        var Video = this.model.Video;
 
 
         Series.find({
@@ -37,11 +33,11 @@ module.exports = function (app) {
                 id: id
             },
             include: [
-                {model: Season, as: 'Seasons',
+                {model: this.model.Season, as: 'Seasons',
                     include: [
-                        {model: Episode, as: 'Episodes',
+                        {model: this.model.Episode, as: 'Episodes',
                             include: [
-                                {model: Video, as: 'Videos'}
+                                {model: this.model.Video, as: 'Videos'}
                             ]}
                     ]}
             ]
@@ -49,11 +45,39 @@ module.exports = function (app) {
                 console.log(series.seasons[0].episodes[0].values);
                 callback(series.values);
             });
+    };
+
+
+    Frontend.prototype.findSeriesByName = function (name, callback) {
+        var Series = this.model.Series;
+
+        Series.findAndCountAll({
+            where: this.S.or(
+                ["title_ru LIKE ?", '%' + name + '%'],
+                ["title_en LIKE ?", '%' + name + '%']
+            )
+        }).success(function (result) {
+                console.log(result);
+                callback(result.rows);
+            });
     }
+
 
     app.get("/frontend/latest", function (request, response) {
         var f = new Frontend(app);
         f.getLatestSeries(10, function (res) {
+            response.render('seriesList',
+                { dataArray: res, rawData: JSON.stringify(res)}
+            );
+        });
+    });
+
+
+    app.get("/frontend/search", function (request, response) {
+        var query = decodeURIComponent(request.query.q);
+        console.log("Q=" + query);
+        var f = new Frontend(app);
+        f.findSeriesByName(query, function (res) {
             response.render('seriesList',
                 { dataArray: res, rawData: JSON.stringify(res)}
             );

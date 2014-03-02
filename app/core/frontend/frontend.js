@@ -63,7 +63,33 @@ module.exports = function (app) {
     }
 
 
-    app.get("/frontend/latest", function (request, response) {
+    //check for valid key when using API
+    var auth = require('../authentication');
+
+    app.all('/api/acquirekey', function (req, res) {
+        auth.initializeKey(function (key) {
+            if (!key) {
+                res.end('Key was NOT created, sorry =(');
+                return false;
+            }
+            //success
+            res.end(key);
+            return true;
+        });
+    });
+
+    app.all('/api/*', function (req, res, next) {
+        var key = req.query.key;
+        auth.checkKey(key, function (result) {
+            if (result) {
+                next();
+                return true;
+            }
+            res.send(403, 'key not provided or not valid');
+        });
+    });
+
+    app.get("/api/latest", function (request, response) {
         var f = new Frontend(app);
         f.getLatestSeries(100, function (res) {
             response.render('seriesList',
@@ -73,7 +99,7 @@ module.exports = function (app) {
     });
 
 
-    app.get("/frontend/search", function (request, response) {
+    app.get("/api/search", function (request, response) {
         var query = decodeURIComponent(request.query.q);
         console.log("Q=" + query);
         var f = new Frontend(app);
@@ -84,7 +110,7 @@ module.exports = function (app) {
         });
     });
 
-    app.get("/frontend/series/:id", function (request, response) {
+    app.get("/api/series/:id", function (request, response) {
         var f = new Frontend(app);
         var id = request.params.id;
         if (!id) return false;

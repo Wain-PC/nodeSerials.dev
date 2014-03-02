@@ -1,0 +1,4 @@
+{
+    "name": "nodeserials-core-authentication",
+    "main": "./authentication.js"
+}

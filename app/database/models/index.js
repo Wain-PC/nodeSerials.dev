@@ -13,12 +13,13 @@ var connectionString = 'mysql://' + credits.user + ':' + credits.password + '@' 
 var sequelize = new Sequelize(connectionString, {logging: false});
 
 
-// load models
+// load models from the following list
 var models = [
     'Series',
     'Season',
     'Episode',
-    'Video'
+    'Video',
+    'User'
 ];
 models.forEach(function (model) {
     module.exports[model] = sequelize.import(__dirname + '/' + model);

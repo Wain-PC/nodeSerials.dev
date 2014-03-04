@@ -207,6 +207,7 @@ Series.prototype.saveSeries = function (callback) {
         var ModelSeason = models.Season;
         var ModelEpisode = models.Episode;
         var ModelVideo = models.Video;
+        var ModelPoster = models.Poster;
 
         var mSeries = ModelSeries.create({
             title_ru: _this.title_ru,
@@ -222,9 +223,19 @@ Series.prototype.saveSeries = function (callback) {
         var mSeason,
             mEpisode,
             mVideo,
+            mPoster,
             i, j, k;
 
         mSeries.success(function (series) {
+            //save posters
+            for (i = 0; i < _this.poster.length; i++) {
+                ModelPoster.create({
+                    url: _this.poster[i]
+                }).success(function (poster) {
+                        poster.setSeries(series);
+                    });
+            }
+
             //save Seasons here
             console.log("Series saved:" + _this.season.length);
             //save seasons
@@ -252,7 +263,8 @@ Series.prototype.saveSeries = function (callback) {
                                 title: _this.season[seasonNumber].episode[j].name,
                                 duration: 40,
                                 air_date: new Date(),
-                                description: _this.season[seasonNumber].episode[j].description
+                                description: _this.season[seasonNumber].episode[j].description,
+                                thumbnail: _this.season[seasonNumber].episode[j].thumbnail
                             })
                                 .success(function (episode) {
                                     var episodeNumber = episode.values.number;

@@ -6,7 +6,8 @@ module.exports = function (db, DataTypes) {
             duration: DataTypes.INTEGER,
             air_date: DataTypes.DATE,
             status: DataTypes.STRING,
-            description: DataTypes.TEXT
+            description: DataTypes.TEXT,
+            thumbnail: DataTypes.STRING
         },
         {freezeTableName: true});
 

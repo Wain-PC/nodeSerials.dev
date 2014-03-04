@@ -13,7 +13,7 @@ module.exports =
                 firefox: 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'
             },
             mobile: {
-                android_hdserials: 'Android;HD Serials v.1.7.0;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)'
+                android_hdserials: 'Android;HD Serials v.1.8.4;ru-RU;google Nexus 4;SDK 10;v.2.3.3(REL)'
             }
         }
     },

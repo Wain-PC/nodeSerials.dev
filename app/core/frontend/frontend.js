@@ -7,6 +7,7 @@ module.exports = function (app) {
         this.model.Season = models.Season;
         this.model.Episode = models.Episode;
         this.model.Video = models.Video;
+        this.model.Poster = models.Poster;
         this.S = models.Sequelize;
     };
 
@@ -15,20 +16,18 @@ module.exports = function (app) {
         var res = [];
         Series.findAndCountAll({
             order: 'id DESC',
-            limit: limit
+            limit: limit,
+            include: [
+                {model: this.model.Poster, as: 'Poster'}
+            ]
         }).success(function (result) {
                 callback(result.rows);
             });
     };
 
     Frontend.prototype.getSeriesById = function (id, callback) {
-        var Series = this.model.Series;
-        var Season = this.model.Season;
-        var Episode = this.model.Episode;
-        var Video = this.model.Video;
 
-
-        Series.find({
+        this.model.Series.find({
             where: {
                 id: id
             },
@@ -39,7 +38,8 @@ module.exports = function (app) {
                             include: [
                                 {model: this.model.Video, as: 'Video'}
                             ]}
-                    ]}
+                    ]},
+                {model: this.model.Poster, as: 'Poster'}
             ]
         }).success(function (series) {
                 console.log(series.season[0].episode[0].values);
@@ -100,7 +100,7 @@ module.exports = function (app) {
                 );
             }
             else {
-                console.log(JSON.stringify(res));
+                console.log("Output total of " + res.length + " items");
                 response.send(res);
             }
 
@@ -110,23 +110,40 @@ module.exports = function (app) {
 
     app.get("/api/search", function (request, response) {
         var query = decodeURIComponent(request.query.q);
-        console.log("Q=" + query);
+        console.log("Q= " + query);
+        var jsonOutput = (request.query.json == 1);
         var f = new Frontend(app);
         f.findSeriesByName(query, function (res) {
-            response.render('seriesList',
-                { dataArray: res, rawData: JSON.stringify(res)}
-            );
+            if (!jsonOutput) {
+                response.render('seriesList',
+                    { dataArray: res, rawData: JSON.stringify(res)}
+                );
+            }
+            else {
+                console.log("Output total of " + res.length + " items");
+                response.send(res);
+            }
         });
     });
 
     app.get("/api/series/:id", function (request, response) {
         var f = new Frontend(app);
         var id = request.params.id;
-        if (!id) return false;
+        var jsonOutput = (request.query.json == 1);
+        if (!id) {
+            response.send({});
+            return false;
+        }
         f.getSeriesById(request.params.id, function (res) {
-            response.render('series',
-                { series: res }
-            );
+            if (!jsonOutput) {
+                response.render('seriesList',
+                    { dataArray: res, rawData: JSON.stringify(res)}
+                );
+            }
+            else {
+                console.log("Output series:" + res.title_ru);
+                response.send(res);
+            }
         });
     });
 

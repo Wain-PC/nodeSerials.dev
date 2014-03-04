@@ -78,23 +78,32 @@ module.exports = function (app) {
         });
     });
 
-    app.all('/api/*', function (req, res, next) {
-        var key = req.query.key;
-        auth.checkKey(key, function (result) {
-            if (result) {
-                next();
-                return true;
-            }
-            res.send(403, 'key not provided or not valid');
-        });
-    });
+    /*app.all('/api*/
+    /*', function (req, res, next) {
+     var key = req.query.key;
+     auth.checkKey(key, function (result) {
+     if (result) {
+     next();
+     return true;
+     }
+     res.send(403, 'key not provided or not valid');
+     });
+     });*/
 
     app.get("/api/latest", function (request, response) {
         var f = new Frontend(app);
+        var jsonOutput = (request.query.json == 1);
         f.getLatestSeries(100, function (res) {
-            response.render('seriesList',
-                { dataArray: res, rawData: JSON.stringify(res)}
-            );
+            if (!jsonOutput) {
+                response.render('seriesList',
+                    { dataArray: res, rawData: JSON.stringify(res)}
+                );
+            }
+            else {
+                console.log(JSON.stringify(res));
+                response.send(res);
+            }
+
         });
     });
 

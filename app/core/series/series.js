@@ -223,6 +223,7 @@ Series.prototype.saveSeries = function (callback) {
         var ModelVideo = models.Video;
         var ModelPoster = models.Poster;
         var ModelGenre = models.Genre;
+        var ModelPerson = models.Person;
 
         var mSeries = ModelSeries.create({
             title_ru: _this.title_ru,
@@ -258,6 +259,19 @@ Series.prototype.saveSeries = function (callback) {
                     series.setGenres(genres);
                     console.log("Saved " + genres.length + " genres for series " + series.title_ru);
                 });
+
+            //save people
+            for (i = 0; i < _this.people.length; i++) {
+                ModelPerson.create({
+                    name: _this.people[i]
+                }).success(function (person) {
+                        console.log("Person " + JSON.stringify(person) + " created");
+                        person.addSeries(series).success(function (p) {
+                            console.log("Person " + p.name + " SET to series");
+                        });
+
+                    });
+            }
 
             //save Seasons here
             console.log("Series saved:" + _this.season.length);

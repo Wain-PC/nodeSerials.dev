@@ -9,6 +9,7 @@ module.exports = function (app) {
         this.model.Video = models.Video;
         this.model.Poster = models.Poster;
         this.model.Genre = models.Genre;
+        this.model.Person = models.Person;
         this.S = models.Sequelize;
     };
 

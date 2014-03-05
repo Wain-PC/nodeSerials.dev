@@ -10,7 +10,7 @@ var credits = {
 
 // initialize database connection
 var connectionString = 'mysql://' + credits.user + ':' + credits.password + '@' + credits.host + '/' + credits.database;
-var sequelize = new Sequelize(connectionString, {logging: false});
+var sequelize = new Sequelize(connectionString, {logging: true});
 
 
 // load models from the following list
@@ -21,7 +21,8 @@ var models = [
     'Video',
     'User',
     'Poster',
-    'Genre'
+    'Genre',
+    'Person'
 ];
 models.forEach(function (model) {
     module.exports[model] = sequelize.import(__dirname + '/' + model);
@@ -33,6 +34,9 @@ models.forEach(function (model) {
     m.Series.hasMany(m.Genre);
     m.Genre.hasMany(m.Series);
     m.Genre.hasMany(m.Genre, {as: 'Similar', through: 'SimilarGenre'});
+
+    m.Series.hasMany(m.Person, { as: 'Person', through: 'SeriesPeople'});
+    m.Person.hasMany(m.Series, {as: 'Series', through: 'SeriesPeople'});
 
     m.Series.hasMany(m.Poster, {as: 'Poster'});
     m.Poster.belongsTo(m.Series, {as: 'Series'});
@@ -49,7 +53,7 @@ models.forEach(function (model) {
 })(module.exports);
 
 //sync database
-sequelize.sync()
+sequelize.sync({force: true})
     .success(function () {
         console.log("Sync success!");
     })

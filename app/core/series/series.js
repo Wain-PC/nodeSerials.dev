@@ -163,7 +163,6 @@ Series.prototype.addPoster = function (posterURL) {
 //this method can get both array and string
 Series.prototype.addPeople = function (people) {
     var is = require('../../util/is');
-    var merge = require('../../util/merge');
     if (!is.array(people) && !is.string(people)) {
         console.log("Adding people failed. Provided parameter is neither array or string");
         return false;
@@ -181,7 +180,8 @@ Series.prototype.addGenres = function (genres) {
         return false;
     }
     //no matter if it's an array or number, one method will do the trick
-    this.merge.call(this.genre, genres);
+    console.log("Merging " + genres.length + " genres");
+    this.genre = this.merge.call(this.genre, genres);
     return true;
 };
 

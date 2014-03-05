@@ -218,7 +218,6 @@ function myShowsAPI() {
             imdbid: mss.imdbId
         });
         series.addGenres(_this.util.getAlignedGenres(mss.genres));
-        return series;
     }.bind(this);
 }
 

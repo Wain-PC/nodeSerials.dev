@@ -17,6 +17,7 @@ function myShowsAPI() {
     this.show = {};
     this.util = {};
     this.util.compare = require('../../util/compare');
+    this.util.is = require('../../util/is');
     this.RC = {
         HTTP: {
             OK: 200,
@@ -35,6 +36,58 @@ function myShowsAPI() {
             'shows_top': '/shows/top/',
             'profile': '/profile/'
         }
+    };
+
+
+    this.genreAssociationTable = {
+        "1": 1,
+        "2": 2,
+        "4": 3,
+        "5": 4,
+        "6": 5,
+        "7": 6,
+        "8": 11,
+        "9": 7,
+        "10": 8,
+        "11": 9,
+        "12": 10,
+        "18": 11,
+        "23": 12,
+        "25": 13,
+        "26": 14,
+        "27": 15,
+        "28": 16,
+        "29": 17,
+        "30": 18,
+        "31": 19,
+        "32": 20,
+        "33": 21,
+        "34": 22,
+        "35": 23,
+        "36": 24,
+        "37": 25,
+        "38": 26,
+        "39": 27,
+        "40": 28,
+        "41": 29,
+        "43": 30,
+        "44": 31,
+        "45": 32,
+        "46": 33,
+        "50": 34,
+        "52": 35,
+        "54": 36,
+        "56": 37,
+        "57": 38,
+        "63": 39,
+        "69": 40,
+        "70": 41,
+        "75": 42,
+        "82": 43,
+        "93": 44,
+        "95": 41,
+        "98": 28,
+        "99": 41
     };
 
 
@@ -85,7 +138,6 @@ function myShowsAPI() {
         }
     }.bind(this);
 
-
     this.util.toUniversal = function (obj, series) {
         var _this = this;
         var mss,
@@ -128,10 +180,25 @@ function myShowsAPI() {
 
     }.bind(this);
 
+    this.util.getAlignedGenres = function (genres) {
+        var retArr = [],
+            genreNum;
+        console.log("Got " + genres.length + " genres from myshows");
+        for (var i = 0; i < genres.length; i++) {
+            //if the association is found, add resulting genre to the returned array
+            if (this.util.is.number(genreNum = this.genreAssociationTable[genres[i]])) {
+                console.log("Found matching genre " + genreNum + " for myShows genre " + genres[i]);
+                retArr.push(genreNum);
+            }
+        }
+        return retArr;
+    }.bind(this);
+
     this.getGenres = function (callback) {
         var rqString = this.HOST + this.SCHEME.public.genres;
         var _this = this;
-        this.RQ.makeRequest(rqString, "GET", false, function (error, response, body) {
+        this.RQ.makeRequest(rqString, false, function (error, response, body) {
+            console.log(body);
             if (response.statusCode === _this.RC.HTTP.OK) {
                 if (callback) callback(JSON.parse(body));
             }
@@ -139,18 +206,19 @@ function myShowsAPI() {
     }.bind(this);
 
     this.util.extractNeededData = function (series, mss) {
-        var is = require('../../util/is');
+        var is = this.util.is;
         if (mss.title && !is.russian(mss.title)) series.title_en = mss.title;
         if (mss.ruTitle && is.russian(mss.ruTitle)) series.title_ru = mss.ruTitle;
         if (is.imageURL(mss.image)) {
             series.addPoster(mss.image);
         }
+        series.genre = this.util.getAlignedGenres(mss.genres);
         series.status = mss.status;
         series.kpid = mss.kinopoiskId;
         series.tvrageid = mss.tvrageId;
         series.imdbid = mss.imdbId;
         return series;
-    }
+    }.bind(this);
 }
 
 module.exports = myShowsAPI;

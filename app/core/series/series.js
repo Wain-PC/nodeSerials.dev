@@ -208,6 +208,7 @@ Series.prototype.saveSeries = function (callback) {
         var ModelEpisode = models.Episode;
         var ModelVideo = models.Video;
         var ModelPoster = models.Poster;
+        var ModelGenre = models.Genre;
 
         var mSeries = ModelSeries.create({
             title_ru: _this.title_ru,
@@ -235,6 +236,14 @@ Series.prototype.saveSeries = function (callback) {
                         poster.setSeries(series);
                     });
             }
+
+            //save genres
+            ModelGenre.findAll({
+                where: {id: _this.genre}
+            }).success(function (genres) {
+                    series.setGenres(genres);
+                    console.log("Set " + genres.length + " for series " + series.title_ru);
+                });
 
             //save Seasons here
             console.log("Series saved:" + _this.season.length);

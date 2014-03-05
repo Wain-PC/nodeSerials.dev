@@ -20,7 +20,8 @@ var models = [
     'Episode',
     'Video',
     'User',
-    'Poster'
+    'Poster',
+    'Genre'
 ];
 models.forEach(function (model) {
     module.exports[model] = sequelize.import(__dirname + '/' + model);
@@ -28,6 +29,11 @@ models.forEach(function (model) {
 
 // describe relationships between models
 (function (m) {
+
+    m.Series.hasMany(m.Genre);
+    m.Genre.hasMany(m.Series);
+    m.Genre.hasMany(m.Genre, {as: 'Similar', through: 'SimilarGenre'});
+
     m.Series.hasMany(m.Poster, {as: 'Poster'});
     m.Poster.belongsTo(m.Series, {as: 'Series'});
 

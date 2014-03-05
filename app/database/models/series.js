@@ -3,12 +3,12 @@ module.exports = function (db, DataTypes) {
         {
             title_ru: DataTypes.STRING,
             title_en: DataTypes.STRING,
-            imdbid: DataTypes.INTEGER,
-            kpid: DataTypes.INTEGER,
-            thetvdbid: DataTypes.INTEGER,
-            tvrageid: DataTypes.INTEGER,
+            imdbid: {type: DataTypes.INTEGER, defaultValue: 0},
+            kpid: {type: DataTypes.INTEGER, defaultValue: 0},
+            thetvdbid: {type: DataTypes.INTEGER, defaultValue: 0},
+            tvrageid: {type: DataTypes.INTEGER, defaultValue: 0},
             status: DataTypes.STRING,
-            description: DataTypes.TEXT
+            description: DataTypes.STRING
         },
         {freezeTableName: true});
 

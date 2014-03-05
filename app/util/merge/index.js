@@ -28,7 +28,7 @@ function merge(obj2, strictMode) {
                 if (is.function(obj1[p])) {
                     continue;
                 }
-                obj1[p] = obj2[p];
+                if (strictMode && obj2[p] != null) obj1[p] = obj2[p];
 
             }
 

@@ -171,7 +171,7 @@ function myShowsAPI() {
 
         if (titleFound) {
             console.log("Title found and updated successfully from the total of " + counter + " tries");
-            series.merge(_this.util.extractNeededData(series, foundSeries), true);
+            _this.util.extractNeededData(series, foundSeries);
             return series;
         }
         //title not found
@@ -207,16 +207,17 @@ function myShowsAPI() {
 
     this.util.extractNeededData = function (series, mss) {
         var is = this.util.is;
+        var _this = this;
         if (mss.title && !is.russian(mss.title)) series.title_en = mss.title;
         if (mss.ruTitle && is.russian(mss.ruTitle)) series.title_ru = mss.ruTitle;
-        if (is.imageURL(mss.image)) {
-            series.addPoster(mss.image);
-        }
-        series.genre = this.util.getAlignedGenres(mss.genres);
-        series.status = mss.status;
-        series.kpid = mss.kinopoiskId;
-        series.tvrageid = mss.tvrageId;
-        series.imdbid = mss.imdbId;
+        series.addPoster(mss.image);
+        series.setProperties({
+            status: mss.status,
+            kpid: mss.kinopoiskId,
+            tvrageid: mss.tvrageId,
+            imdbid: mss.imdbId
+        });
+        series.addGenres(_this.util.getAlignedGenres(mss.genres));
         return series;
     }.bind(this);
 }

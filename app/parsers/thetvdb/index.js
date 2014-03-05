@@ -246,8 +246,8 @@ function TheTvDbParser(key) {
             }
 
             console.log("Updating info for season " + seasonNumber + " ep:" + episodeNumber);
-            episode.name = tvdbEpisode.EpisodeName;
-            episode.description = tvdbEpisode.Overview;
+            if (is.string(tvdbEpisode.EpisodeName)) episode.name = tvdbEpisode.EpisodeName;
+            if (is.string(tvdbEpisode.Overview)) episode.description = tvdbEpisode.Overview;
             if (is.imageURL(baseImageURL + tvdbEpisode.filename)) {
                 episode.thumbnail = baseImageURL + tvdbEpisode.filename;
             }

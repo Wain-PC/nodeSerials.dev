@@ -7,6 +7,8 @@ var Series = function (app) {
         this.description = "",
         this.imdbid = 0,
         this.kpid = 0,
+        this.tvrageid = 0,
+        this.status = "",
         this.year,
         this.thetvdbid = 0;
 
@@ -167,9 +169,22 @@ Series.prototype.addPeople = function (people) {
         return false;
     }
     //no matter if it's an array or string, one method will do the trick
-    merge.call(this.people, people);
+    this.merge.call(this.people, people);
     return true;
 };
+
+//this method can get both array and number
+Series.prototype.addGenres = function (genres) {
+    var is = require('../../util/is');
+    if (!is.array(genres) && !is.number(genres)) {
+        console.log("Adding genres failed. Provided parameter is neither array or number");
+        return false;
+    }
+    //no matter if it's an array or number, one method will do the trick
+    this.merge.call(this.genre, genres);
+    return true;
+};
+
 
 Series.prototype.addShow = function (callback) {
     //count total length of episodes here
@@ -195,7 +210,6 @@ Series.prototype.addShow = function (callback) {
         });
     });
 };
-
 
 Series.prototype.saveSeries = function (callback) {
 
@@ -242,7 +256,7 @@ Series.prototype.saveSeries = function (callback) {
                 where: {id: _this.genre}
             }).success(function (genres) {
                     series.setGenres(genres);
-                    console.log("Set " + genres.length + " for series " + series.title_ru);
+                    console.log("Saved " + genres.length + " genres for series " + series.title_ru);
                 });
 
             //save Seasons here
@@ -251,16 +265,15 @@ Series.prototype.saveSeries = function (callback) {
             for (i = 0; i < _this.season.length; i++) {
                 if (!is.object(_this.season[i])) continue;
                 //got season
-                console.log("Creating season " + i);
+                console.log("Saving season " + i);
                 mSeason = ModelSeason.create({
-                    number: i,
-                    status: _this.status,
-                    description: _this.description
+                    number: i
                 }).success(function (season) {
                         var seasonNumber = season.values.number;
+                        console.log("Saved season " + seasonNumber + " for series " + series.values.id);
                         season.setSeries(series)
                             .success(function () {
-                                console.log("Saved season " + seasonNumber);
+                                console.log("Season " + seasonNumber + " updated");
                             });
 
                         //now save episodes from each season

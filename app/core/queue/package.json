@@ -1,0 +1,4 @@
+{
+    "name": "nodeserials-core-queue",
+    "main": "./queue.js"
+}

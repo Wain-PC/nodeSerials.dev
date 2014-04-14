@@ -5,12 +5,12 @@ var credits = {
     host: config.database.host,
     user: config.database.login,
     password: config.database.password,
-    database: 'nodeserials'
+    database: config.database.name
 };
 
 // initialize database connection
 var connectionString = 'mysql://' + credits.user + ':' + credits.password + '@' + credits.host + '/' + credits.database;
-var sequelize = new Sequelize(connectionString, {logging: true});
+var sequelize = new Sequelize(connectionString, {logging: false});
 
 
 // load models from the following list
@@ -22,7 +22,8 @@ var models = [
     'User',
     'Poster',
     'Genre',
-    'Person'
+    'Person',
+    'Queue'
 ];
 models.forEach(function (model) {
     module.exports[model] = sequelize.import(__dirname + '/' + model);
@@ -53,7 +54,7 @@ models.forEach(function (model) {
 })(module.exports);
 
 //sync database
-sequelize.sync({force: true})
+sequelize.sync()
     .success(function () {
         console.log("Sync success!");
     })

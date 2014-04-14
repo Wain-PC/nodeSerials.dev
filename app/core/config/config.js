@@ -1,6 +1,7 @@
 module.exports =
 {
     database: {
+        name: 'nodeserials',
         host: 'localhost',
         login: 'root',
         password: ''

@@ -6,8 +6,8 @@ module.exports = function (app) {
     var CONFIG = require('../../core/config');
     var USER_AGENT = CONFIG.http.userAgent.desktop.opera;
     var Request = require('../../util/request');
-    var RqGet = new Request(USER_AGENT, 'GET');
-    var RqPost = new Request(USER_AGENT, 'POST');
+    var RqGet = new Request(app, USER_AGENT, 'GET');
+    var RqPost = new Request(app, USER_AGENT, 'POST');
     var BASE_URL = 'http://hdkinoteatr.com';
     var Series = require('../../core/series');
 

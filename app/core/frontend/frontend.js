@@ -2,6 +2,7 @@ module.exports = function (app) {
 
     var Frontend = function (app) {
         var models = app.get('models');
+        this.app = app;
         this.model = {};
         this.model.Series = models.Series;
         this.model.Season = models.Season;
@@ -12,6 +13,22 @@ module.exports = function (app) {
         this.model.Person = models.Person;
         this.S = models.Sequelize;
     };
+
+    Frontend.prototype.provideDeferredRequestData = function (callback) {
+        var Q = this.app.get('queue');
+        Q.provideDeferredRequestData(function (item) {
+            callback(item);
+        });
+    };
+
+
+    app.get("/api/request", function (request, response) {
+        var f = new Frontend(app);
+        var jsonOutput = (request.query.json == 1);
+        f.provideDeferredRequestData(function (res) {
+            response.json(res);
+        });
+    });
 
     Frontend.prototype.getLatestSeries = function (limit, callback) {
         var Series = this.model.Series;

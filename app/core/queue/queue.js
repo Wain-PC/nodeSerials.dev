@@ -1,5 +1,6 @@
 var Queue = function (app) {
-    this.queue = app.get("models").Queue;
+    this.queue = app.get("models");
+    this.queue = this.queue.Queue;
 };
 
 //push the item to the end of the queue
@@ -18,7 +19,7 @@ Queue.prototype.push = function (obj, callback) {
 };
 
 //pull the first item of the queue
-Queue.prototype.pull = function (id, callback) {
+Queue.prototype.pull = function (callback) {
     this.queue.find(
         {
             order: 'id DESC',
@@ -26,11 +27,24 @@ Queue.prototype.pull = function (id, callback) {
         }
     ).success(function (item) {
             //okay, now remove the item from the database
+            //if it exists
+            if (!item) {
+                callback({});
+                return false;
+            }
             item.destroy().success(function () {
                 // now i'm gone :)
                 callback(item);
             });
         })
+};
+
+
+Queue.prototype.provideDeferredRequestData = function (callback) {
+    //pull the item from the queue
+    this.pull(function (item) {
+        callback(item);
+    });
 };
 
 module.exports = Queue;

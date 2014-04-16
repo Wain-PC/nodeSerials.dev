@@ -9,12 +9,12 @@ var QS = require('querystring');
 var REQUEST = require('request');
 var EVENTS = require('events');
 var merge = require('../merge');
-var Queue = require('../../core/queue');
 
 function Request(app, userAgent, type) {
     this.USER_AGENT = userAgent;
     this.TYPE = type;
     this.app = app;
+    this.Q = app.get('queue');
 }
 
 Request.prototype = new EVENTS.EventEmitter;
@@ -97,8 +97,7 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
 
 Request.prototype.makeDeferredRequest = function (url, data, callback, params) {
     var _this = this;
-    var Q = new Queue(_this.app);
-    Q.push({
+    _this.Q.push({
         url: url,
         type: _this.TYPE,
         userAgent: _this.USER_AGENT,
@@ -107,7 +106,27 @@ Request.prototype.makeDeferredRequest = function (url, data, callback, params) {
         console.log("Item is in the queue now!");
         callback(item);
     });
-}
+};
+
+
+Request.prototype._receiveDeferredRequestResponse = function (error, response, body) {
+    var _this = this;
+    if (error) {
+        console.log("Deferred request error:" + error);
+        _this.emit('fail', error, response, body);
+        return false;
+    }
+
+    if (response.statusCode != 200) {
+        console.log("Request error, code " + response.statusCode);
+        _this.emit('fail', error, response, body);
+        return false;
+    }
+
+    _this.emit('success', error, response, body);
+    return true;
+
+};
 
 
 //exporting function

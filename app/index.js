@@ -15,6 +15,10 @@ app.use(app.router);
 //db connection and models
 app.set('models', require('./database/models'));
 
+//set deferred request queue
+var Q = require('./core/queue');
+app.set('queue', new Q(app));
+
 //routing
 require('./routes.js')(app);
 require('./core/frontend')(app);

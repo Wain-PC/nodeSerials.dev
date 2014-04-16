@@ -138,12 +138,11 @@ module.exports = function (app) {
         }
         f.getSeriesById(request.params.id, function (res) {
             if (!jsonOutput) {
-                response.render('seriesList',
-                    { dataArray: res, rawData: JSON.stringify(res)}
+                response.render('series',
+                    { dataArray: res }
                 );
             }
             else {
-                console.log("Output series:" + res.title_ru);
                 response.send(res);
             }
         });

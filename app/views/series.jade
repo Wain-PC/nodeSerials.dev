@@ -1,8 +1,8 @@
 extends template
 block common-categories
-    for season in series.season
+    for s in dataArray.season
         p
-            h3= 'Season ' + season.values.number
-                for episode in season.episode
+            h3= 'Сезон ' + s.values.number
+                for episode in s.episode
                     p
                         a(href=episode.video[0].values.url)= episode.values.title +' ('+ episode.values.number +')'

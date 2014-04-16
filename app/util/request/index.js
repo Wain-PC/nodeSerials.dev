@@ -7,12 +7,17 @@
  */
 var QS = require('querystring');
 var REQUEST = require('request');
+var EVENTS = require('events');
 var merge = require('../merge');
+var Queue = require('../../core/queue');
 
-function Request(userAgent, type) {
+function Request(app, userAgent, type) {
     this.USER_AGENT = userAgent;
     this.TYPE = type;
+    this.app = app;
 }
+
+Request.prototype = new EVENTS.EventEmitter;
 
 Request.prototype.makeRequest = function (url, data, callback, params) {
     var _this = this;
@@ -88,6 +93,22 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
     REQUEST(requestOptions, onRequestFinished);
 
 };
+
+
+Request.prototype.makeDeferredRequest = function (url, data, callback, params) {
+    var _this = this;
+    var Q = new Queue(_this.app);
+    Q.push({
+        url: url,
+        type: _this.TYPE,
+        userAgent: _this.USER_AGENT,
+        params: QS.stringify(data)
+    }, function (item) {
+        console.log("Item is in the queue now!");
+        callback(item);
+    });
+}
+
 
 //exporting function
 module.exports = Request;

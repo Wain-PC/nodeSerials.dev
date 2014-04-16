@@ -3,11 +3,13 @@ var Queue = function (app) {
 };
 
 //push the item to the end of the queue
-Queue.prototype.push = function (url, params, callback) {
+Queue.prototype.push = function (obj, callback) {
     this.queue.create(
         {
-            url: url,
-            params: params
+            url: obj.url,
+            type: obj.type,
+            userAgent: obj.userAgent,
+            params: obj.params
         }
     ).success(function (item) {
             //something to do when the item has been added
@@ -19,11 +21,18 @@ Queue.prototype.push = function (url, params, callback) {
 Queue.prototype.pull = function (id, callback) {
     this.queue.find(
         {
+            order: 'id DESC',
             limit: 1
         }
     ).success(function (item) {
-
+            //okay, now remove the item from the database
+            item.destroy().success(function () {
+                // now i'm gone :)
+                callback(item);
+            });
         })
 };
+
+module.exports = Queue;
 
 

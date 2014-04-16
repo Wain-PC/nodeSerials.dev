@@ -7,8 +7,8 @@ module.exports = function (app) {
     var Request = require('../../util/request');
     var CONFIG = require('../../core/config');
     var USER_AGENT = CONFIG.http.userAgent.mobile.android_hdserials;
-    var RqGet = new Request(USER_AGENT, 'GET');
-    var RqPost = new Request(USER_AGENT, 'POST');
+    var RqGet = new Request(app, USER_AGENT, 'GET');
+    var RqPost = new Request(app, USER_AGENT, 'POST');
     var BASE_URL = 'http://hdserials.galanov.net/backend/model.php';
     var Series = require('../../core/series');
 
@@ -20,7 +20,7 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RqGet.makeRequest(BASE_URL, rqData, onRequestFinished);
+        RqGet.makeDeferredRequest(BASE_URL, rqData, onRequestFinished);
 
     }
 

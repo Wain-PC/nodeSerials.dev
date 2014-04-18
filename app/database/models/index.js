@@ -54,7 +54,7 @@ models.forEach(function (model) {
 })(module.exports);
 
 //sync database
-sequelize.sync()
+sequelize.sync({force: true})
     .success(function () {
         console.log("Sync success!");
     })

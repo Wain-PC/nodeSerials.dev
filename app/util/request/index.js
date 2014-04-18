@@ -69,33 +69,40 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
         requestOptions.merge(params);
     }
 
-    var onRequestFinished = function (error, response, body) {
-        if (error) {
-            console.log("Request error:" + error);
-            callback(error, false, false);
-            return false;
-        }
-
-        //console.log("Got status code: " + response.statusCode);
-        //console.log("Got headers: " + JSON.stringify(response.headers));
-        if (response.statusCode != 200) {
-            console.log("Request error, code " + response.statusCode);
-            //throw new Error(response.statusCode);
-        }
-        //console.log("Got body: " + body);
-        if (callback) {
-            callback(error, response, body);
-        }
-        return true;
-    };
-
     //console.log('Sending ' + type + ' request to: ' + url + JSON.stringify(requestOptions));
-    REQUEST(requestOptions, onRequestFinished);
-
+    REQUEST(requestOptions, function (error, response, body) {
+        _this._onResponse(error, response, body, callback);
+    });
 };
 
 
-Request.prototype.makeDeferredRequest = function (url, data, callback, params) {
+Request.prototype._onResponse = function (error, response, body, callback) {
+    if (error) {
+        console.log("Request error:" + error);
+        if (callback) {
+            callback(error, response, body);
+        }
+        this.emit('fail', error, response, body);
+        return false;
+    }
+
+    //console.log("Got status code: " + response.statusCode);
+    //console.log("Got headers: " + JSON.stringify(response.headers));
+    if (response.statusCode != 200) {
+        console.log("Request error, code " + response.statusCode);
+        this.emit('fail', error, response, body);
+        return false;
+    }
+    //console.log("Got body: " + body);
+    this.emit('success', error, response, body);
+    if (callback) {
+        callback(error, response, body);
+    }
+    return true;
+};
+
+
+Request.prototype.makeDeferredRequest = function (url, data, callback) {
     var _this = this;
     _this.Q.push({
         url: url,
@@ -106,26 +113,6 @@ Request.prototype.makeDeferredRequest = function (url, data, callback, params) {
         console.log("Item is in the queue now!");
         callback(item);
     });
-};
-
-
-Request.prototype._receiveDeferredRequestResponse = function (error, response, body) {
-    var _this = this;
-    if (error) {
-        console.log("Deferred request error:" + error);
-        _this.emit('fail', error, response, body);
-        return false;
-    }
-
-    if (response.statusCode != 200) {
-        console.log("Request error, code " + response.statusCode);
-        _this.emit('fail', error, response, body);
-        return false;
-    }
-
-    _this.emit('success', error, response, body);
-    return true;
-
 };
 
 

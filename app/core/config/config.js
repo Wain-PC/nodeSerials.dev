@@ -22,5 +22,12 @@ module.exports =
         thetvdb: {
             api_key: '1F31F9C2BDB72379'
         }
+    },
+    rrx: {
+        timeout: {
+            checkQueue: 5,
+            noRemoteDevices: 10,
+            remoteDeviceResponse: 30
+        }
     }
 };

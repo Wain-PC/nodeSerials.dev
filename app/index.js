@@ -15,9 +15,15 @@ app.use(app.router);
 //db connection and models
 app.set('models', require('./database/models'));
 
+//set config
+app.set('config',require('./core/config'));
+
 //set deferred request queue
 var Q = require('./core/queue');
-app.set('queue', new Q(app));
+Q = new Q(app);
+Q.startDynamicRequestExecution();
+
+app.set('queue', Q);
 
 //routing
 require('./routes.js')(app);

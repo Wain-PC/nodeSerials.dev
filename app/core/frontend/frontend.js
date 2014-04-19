@@ -16,7 +16,7 @@ module.exports = function (app) {
 
     Frontend.prototype.provideDeferredRequestData = function (callback) {
         var Q = this.app.get('queue');
-        Q.provideDeferredRequestData(function (item) {
+        Q.pull(function (item) {
             callback(item);
         });
     };

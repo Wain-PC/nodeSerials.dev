@@ -1,11 +1,64 @@
 var Queue = function (app) {
+    this.app = app;
+
+    this.rrx = app.get('config');
+    this.rrx = this.rrx.rrx;
+
+    this.rrxIntervalHandler = null;
+
     this.queue = app.get("models");
     this.queue = this.queue.Queue;
+
     this.status = {
         new: 'new',
         sent: 'sent'
     };
 };
+
+var EVENTS = require('events');
+Queue.prototype = new EVENTS.EventEmitter;
+
+
+//this is a VERY EARLY prototype of what it should be
+//it doesn't actually do any 'send-to-device' stuff
+Queue.prototype.remoteRequestExecutor = function() {
+    var _this = this;
+    var Request = require('../../util/request');
+
+    _this.pull(function(item) {
+        if(!item.id) {
+            console.log("Seems like empty queue, RRX aborted");
+            return false;
+        }
+
+        var request = new Request(_this.app, item.userAgent, item.type);
+        request.makeRequest(item.url,item.params);
+        request.on('success',function(error,response,body) {
+            _this.emit('done',item.requestId,error,response,body);
+        })
+    });
+
+};
+
+
+Queue.prototype.startDynamicRequestExecution = function() {
+    var cqTimeout = this.rrx.timeout.checkQueue;
+    var _this = this;
+    console.log("RRX started! Interval is set to %d sec",cqTimeout);
+    this.rrx.intervalHandler = setInterval(function() {
+        _this.remoteRequestExecutor();
+    },cqTimeout*1000);
+};
+
+
+Queue.prototype.stopDynamicRequestExecution = function() {
+    //I assume it's impossible to check correct execution of the code below.
+    //This method is extremely prone to error
+    var t = this.rrxIntervalHandler;
+    clearInterval(t);
+    return true;
+};
+
 
 //push the item to the end of the queue
 Queue.prototype.push = function (obj, callback) {
@@ -15,8 +68,9 @@ Queue.prototype.push = function (obj, callback) {
             url: obj.url,
             type: obj.type,
             userAgent: obj.userAgent,
-            params: obj.params,
-            status: _this.status.new
+            params: JSON.stringify(obj.params),
+            status: _this.status.new,
+            requestId: obj.requestId
         }
     ).success(function (item) {
             //something to do when the item has been added
@@ -43,6 +97,8 @@ Queue.prototype.pull = function (callback) {
             item.status = _this.status.sent;
             item.save().success(function () {
                 // now i'm updated
+                //get the params back to object from string
+                item.params = JSON.parse(item.params);
                 callback(item);
             });
         })
@@ -70,13 +126,6 @@ Queue.prototype.resetItem = function (item, callback) {
     });
 };
 
-
-Queue.prototype.provideDeferredRequestData = function (callback) {
-    //pull the item from the queue
-    this.pull(function (item) {
-        callback(item);
-    });
-};
 
 module.exports = Queue;
 

@@ -20,7 +20,9 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        RqGet.makeDeferredRequest(BASE_URL, rqData, onRequestFinished);
+        var request = new Request(app, USER_AGENT, 'GET');
+
+        request.makeDeferredRequest(BASE_URL, rqData, onRequestFinished);
 
     }
 

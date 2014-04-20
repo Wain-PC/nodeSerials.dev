@@ -27,15 +27,16 @@ Queue.prototype.remoteRequestExecutor = function() {
 
     _this.pull(function(item) {
         if(!item.id) {
-            console.log("Seems like empty queue, RRX aborted");
+            console.log("Seems like empty queue, RRX aborted.");
             return false;
         }
 
         var request = new Request(_this.app, item.userAgent, item.type);
-        request.makeRequest(item.url,item.params);
-        request.on('success',function(error,response,body) {
+        console.log("----------RRX working for request "+item.requestId);
+        request.makeRequest(item.url,item.params, function(error,response,body) {
+            console.log("Emit done for request "+item.requestId);
             _this.emit('done',item.requestId,error,response,body);
-        })
+        });
     });
 
 };
@@ -84,7 +85,7 @@ Queue.prototype.pull = function (callback) {
     this.queue.find(
         {
             where: {status: _this.status.new},
-            order: 'id DESC',
+            order: 'id ASC',
             limit: 1
         }
     ).success(function (item) {
@@ -102,6 +103,34 @@ Queue.prototype.pull = function (callback) {
                 callback(item);
             });
         })
+};
+
+//currently, returned answers aren't really detailed. Probably, should return object with error descriptions?
+Queue.prototype.rrxResponseReceived = function(query) {
+    var status = {
+        ok: 'ok',
+        fail: 'fail'
+        },
+        _this = this;
+
+    if(!query) return status.fail;
+
+    try {
+        //should we check requestId for presence in our DB?
+
+        var response = {
+            headers: query.response.headers,
+            statusCode: query.response.statusCode
+        };
+
+        _this.emit('done',query.requestId,false,response,query.body);
+        return status.ok;
+
+    }
+    catch (e) {
+        return status.fail;
+    }
+
 };
 
 
@@ -125,6 +154,20 @@ Queue.prototype.resetItem = function (item, callback) {
         callback(item);
     });
 };
+
+
+Queue.prototype.removeItemByRequestId = function (id, callback) {
+    var _this = this;
+    this.queue.find(
+        {
+            where: {requestId: id}
+        }
+    ).success(function (item) {
+            item.destroy().success(function () {
+                callback('ok');
+            });
+        });
+}
 
 
 module.exports = Queue;

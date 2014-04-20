@@ -22,12 +22,19 @@ module.exports = function (app) {
     };
 
 
-    app.get("/api/request", function (request, response) {
-        var f = new Frontend(app);
-        var jsonOutput = (request.query.json == 1);
-        f.provideDeferredRequestData(function (res) {
-            response.json(res);
+    app.get("/api/request/get", function (request, response) {
+        var Q = this.app.get('queue');
+        Q.pull(function (item) {
+            response.json(item);
         });
+    });
+
+
+    app.get("/api/request/put", function (request, response) {
+        var Q = this.app.get('queue');
+        Q.rrxResponseReceived(request.query,function(status){
+            response.send(status);
+        })
     });
 
     Frontend.prototype.getLatestSeries = function (limit, callback) {

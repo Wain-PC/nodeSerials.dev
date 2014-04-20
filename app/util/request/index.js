@@ -20,10 +20,8 @@ function Request(app, userAgent, type) {
     var crypto = require('crypto');
     var sha = crypto.createHash('sha1');
     var buf = crypto.pseudoRandomBytes(128);
-        sha.update(buf);
-
+    sha.update(buf);
     this.requestId = sha.digest('hex');
-    console.log("RequestID:"+this.requestId);
 }
 
 Request.prototype = new EVENTS.EventEmitter;
@@ -78,7 +76,7 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
         requestOptions.merge(params);
     }
 
-   console.log('Sending ' + type + ' request to: ' + url + JSON.stringify(requestOptions));
+    console.log('Sending ' + type + ' request to: ' + url + JSON.stringify(requestOptions));
     REQUEST(requestOptions, function (error, response, body) {
         _this._onResponse(error, response, body, callback);
     });
@@ -95,14 +93,14 @@ Request.prototype._onResponse = function (error, response, body, callback) {
         return false;
     }
 
-    console.log("Got status code: " + response.statusCode);
-    console.log("Got headers: " + JSON.stringify(response.headers));
+    //console.log("Got status code: " + response.statusCode);
+    //console.log("Got headers: " + JSON.stringify(response.headers));
     if (response.statusCode != 200) {
         console.log("Request error, code " + response.statusCode);
         this.emit('fail', error, response, body);
         return false;
     }
-    console.log("Got body: " + body);
+    //console.log("Got body: " + body);
     this.emit('success', error, response, body);
     if (callback) {
         callback(error, response, body);
@@ -113,7 +111,6 @@ Request.prototype._onResponse = function (error, response, body, callback) {
 
 Request.prototype.makeDeferredRequest = function (url, data, callback) {
     var _this = this;
-    console.log("DATA:"+data);
     _this.Q.push({
         url: url,
         requestId: _this.requestId,
@@ -124,18 +121,23 @@ Request.prototype.makeDeferredRequest = function (url, data, callback) {
         console.log("Item is in the queue now!");
         //we should listen to the unique identifier generated for this request
         //who emits the 'request ready' event?
-        _this.Q.on('done',function(requestId,error,response,body){
-            //check where it's really our request, not someone else'
-            console.log("Some request done: "+requestId);
-            if(requestId == _this.requestId) {
-                console.log("YEAH, this is mine!");
-              _this.Q.removeAllListeners('done');
-                _this._onResponse(error,response,body);
-            }
+        _this.Q.on('done', function (requestId, error, response, body) {
+            deferredRequestAnswered(requestId, error, response, body, callback);
         });
-        console.log("Event listener set with eventId "+_this.requestId);
-        callback(item);
+        console.log("Event listener set with requestId " + _this.requestId);
     });
+
+
+    function deferredRequestAnswered(requestId, error, response, body, callback) {
+        //check if it's really our request, not someone else's
+        if (requestId == _this.requestId) {
+            console.log("YESH! Mine request!");
+            _this.Q.removeListener('done', deferredRequestAnswered);
+            _this.Q.removeItemByRequestId(requestId, function () {
+                _this._onResponse(error, response, body, callback);
+            });
+        }
+    }
 };
 
 

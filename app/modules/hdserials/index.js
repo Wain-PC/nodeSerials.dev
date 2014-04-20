@@ -22,14 +22,26 @@ module.exports = function (app) {
 
         var request = new Request(app, USER_AGENT, 'GET');
 
-        request.makeDeferredRequest(BASE_URL, rqData, onRequestFinished);
-
+        request.makeDeferredRequest(BASE_URL, rqData, function(error,response,body){
+            try {
+                var items = JSON.parse(body),
+                    i= 0,
+                    id;
+                items = items.data;
+                for(i=0;i<items.length;i++) {
+                    id = items[i].id;
+                    comdirHandler(id);
+                }
+            }
+            catch(e) {
+                res.send(500,'Error!:'+e);
+            }
+        });
     }
 
 
-    function comdirHandler(req, res, next) {
-        var id = req.params.id;
-        var page = req.query.page || 0; //dirty hack
+    function comdirHandler(id,page) {
+        page = page || 0; //dirty hack
         var itemsPerPage = 20; //hardcoded
         var rqData = {
             id: 'sub-categories',
@@ -37,16 +49,26 @@ module.exports = function (app) {
             start: page * itemsPerPage + 1
         };
 
-        REQ = req;
-        RES = res;
-        NEXT = next;
-
-        RqGet.makeRequest(BASE_URL, rqData, onRequestFinished);
+        var request = new Request(app, USER_AGENT, 'GET');
+        request.makeDeferredRequest(BASE_URL, rqData, function(error,response,body) {
+            try {
+                var items = JSON.parse(body),
+                    i= 0,
+                    id;
+                items = items.data;
+                for(i=0;i<items.length;i++) {
+                    id = items[i].id;
+                    subdirHandler(id,0);
+                }
+            }
+            catch(e) {
+                console.log('Error!:'+e);
+            }
+        });
     }
 
-    function subdirHandler(req, res, next) {
-        var id = req.params.id;
-        var page = req.query.page || 0; //dirty hack
+    function subdirHandler(id,page) {
+        page = page || 0; //dirty hack
         var itemsPerPage = 20; //hardcoded
         var rqData = {
             id: 'filter-videos',
@@ -56,26 +78,18 @@ module.exports = function (app) {
             limit: 20
         };
 
-        REQ = req;
-        RES = res;
-        NEXT = next;
-
-        RqGet.makeRequest(BASE_URL, rqData, onsubDirRequestFinished);
+        var request = new Request(app, USER_AGENT, 'GET');
+        request.makeDeferredRequest(BASE_URL, rqData, onsubDirRequestFinished);
     }
 
-    function itemHandler(req, res, next) {
-        var id = req.params.id;
-        var season = req.query.season;
+    function itemHandler(id,season) {
         var rqData = {
             id: 'video',
             video: id
         };
 
-        REQ = req;
-        RES = res;
-        NEXT = next;
-
-        RqGet.makeRequest(BASE_URL, rqData, function (error, response, body) {
+        var request = new Request(app, USER_AGENT, 'GET');
+        request.makeDeferredRequest(BASE_URL, rqData, function (error, response, body) {
 
             var obj = JSON.parse(body);
             //if we've got the season number earlier, inject it to json
@@ -103,43 +117,25 @@ module.exports = function (app) {
 
     }
 
-    function onRequestFinished(error, response, body) {
-        try {
-            var resJSON = JSON.parse(body);
-            //render it with JADE
-            //render the page with received view
-            RES.render(resJSON.id,
-                { dataArray: resJSON.data, rawData: body }
-            );
-        }
-        catch (err) {
-            RES.end("Error happenned: " + err);
-        }
-    }
-
     function onsubDirRequestFinished(error, response, body) {
         try {
             var resJSON = JSON.parse(body);
             //render it with JADE
             //render the page with received view
 
-            var s;
-            var reSeason = /Сезон.?(\d+)/i,
-                reSeason2 = /(\d+).?Сезон/i,
-                se;
 
             for (var i = 0; i < resJSON.data.length; i++) {
                 if (resJSON.data[i].season) {
                     resJSON.data[i].season = resJSON.data[i].season.replace(/\D/g, '');
                 }
+                //prepare requests for actual items, then add them to DB
+                itemHandler(resJSON.data[i].id, resJSON.data[i].season);
             }
 
-            RES.render(resJSON.id,
-                { dataArray: resJSON.data, rawData: body }
-            );
+
         }
         catch (err) {
-            RES.end("Error happenned: " + err);
+            console.log("Error happenned within subdir: " + err);
         }
     }
 

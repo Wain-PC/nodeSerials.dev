@@ -1,20 +1,19 @@
-var base_uri = "http://thetvdb.com/api/",
-    language = "en",
-    request = require("../../util/request"),
-    parser = require("xml2json"),
-    config = require("../../core/config"),
-    userAgent = config.http.userAgent.desktop.opera;
-
-request = new request(userAgent, 'GET');
-
-module.exports = function (access_token) {
+module.exports = function (app, access_token) {
 
     var resources = {};
+    var base_uri = "http://thetvdb.com/api/",
+        language = "en",
+        request = require("../../util/request"),
+        parser = require("xml2json"),
+        config = require("../../core/config"),
+        userAgent = config.http.userAgent.desktop.opera;
 
-    function parsereq(url, cb) {
+    request = new request(app, userAgent, 'GET');
+
+    function parsereq(url, callback) {
         request.makeRequest(url, false, function (error, response, body) {
             if (error) {
-                cb(error, false, false);
+                callback(error, false, false);
             }
             if (response.statusCode === 200) {
                 jsonbody = parser.toJson(body, {object: true, sanitize: false});
@@ -22,10 +21,10 @@ module.exports = function (access_token) {
                     error = jsonbody.Error;
                     jsonbody = null;
                 }
-                cb(error, jsonbody);
+                callback(error, jsonbody);
             }
             else {
-                cb(error ? error : "Could not complete the request", null);
+                callback(error ? error : "Could not complete the request", null);
             }
         });
     }

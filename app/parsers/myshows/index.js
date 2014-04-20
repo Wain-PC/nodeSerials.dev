@@ -7,12 +7,12 @@
  */
 
 
-function myShowsAPI() {
+function myShowsAPI(app) {
 
     var Request = require('../../util/request');
     var USER_AGENT = 'Opera/9.80 (Windows NT 6.0) Presto/2.12.388 Version/12.14';
 
-    this.RQ = new Request(USER_AGENT, 'GET');
+    this.RQ = new Request(app, USER_AGENT, 'GET');
     this.HOST = 'http://api.myshows.ru';
     this.show = {};
     this.util = {};
@@ -183,7 +183,7 @@ function myShowsAPI() {
     this.util.getAlignedGenres = function (genres) {
         var retArr = [],
             genreNum;
-        console.log("Got " + genres.length + " genres from myshows");
+        console.log("Got " + genres ? genres.length : 0 + " genres from myshows");
         for (var i = 0; i < genres.length; i++) {
             //if the association is found, add resulting genre to the returned array
             if (this.util.is.number(genreNum = this.genreAssociationTable[genres[i]])) {
@@ -217,7 +217,9 @@ function myShowsAPI() {
             tvrageid: mss.tvrageId,
             imdbid: mss.imdbId
         });
-        series.addGenres(_this.util.getAlignedGenres(mss.genres));
+        if (mss.genres && mss.genres.length > 0) {
+            series.addGenres(_this.util.getAlignedGenres(mss.genres));
+        }
     }.bind(this);
 }
 

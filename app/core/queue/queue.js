@@ -85,7 +85,7 @@ Queue.prototype.pull = function (callback) {
     this.queue.find(
         {
             where: {status: _this.status.new},
-            order: 'id ASC',
+            order: 'id DESC',
             limit: 1
         }
     ).success(function (item) {

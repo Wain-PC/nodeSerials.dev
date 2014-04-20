@@ -198,9 +198,9 @@ Series.prototype.addShow = function (callback) {
 
     var CONFIG = require('../../core/config');
     var MS = require('../../parsers/myshows');
-    var myShowsParser = new MS();
+    var myShowsParser = new MS(_this.getApp());
     var TVDB = require("../../parsers/thetvdb");
-    var theTvDbParser = new TVDB(CONFIG.parsers.thetvdb.api_key);
+    var theTvDbParser = new TVDB(_this.getApp(),CONFIG.parsers.thetvdb.api_key);
 
     myShowsParser.show.searchForShow(this, function (obj) {
         if (obj) _this.merge(obj);

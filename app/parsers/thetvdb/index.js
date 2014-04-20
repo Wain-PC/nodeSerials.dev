@@ -1,6 +1,7 @@
-function TheTvDbParser(key) {
+function TheTvDbParser(app,key) {
     this.key = key;
     this.api = require("./api.js");
+    this.api = new this.api(app,key);
     this.show = {};
     this.util = {};
     this.util.compare = require('../../util/compare');
@@ -24,14 +25,14 @@ function TheTvDbParser(key) {
         searchLang = res.lang;
 
         //set language for appropriate language
-        this.api(key).setLanguage(searchLang);
+        this.api.setLanguage(searchLang);
 
         //if possible, search show by imdb ID
         if (series.imdbid) {
-            this.api(key).getSeriesByImdbId(series.imdbid, function (err, res) {
+            this.api.getSeriesByImdbId(series.imdbid, function (err, res) {
                 console.log("theTVDB Searching by IMDBID:" + series.imdbid);
                 if (err || !seriesFound(res)) {
-                    _this.api(key).getSeries(showTitle, function (err, res) {
+                    _this.api.getSeries(showTitle, function (err, res) {
                         console.log("theTVDB Searching by show title:" + showTitle);
                         mainCallback(_this, err, res, callback, series);
                     });
@@ -44,7 +45,7 @@ function TheTvDbParser(key) {
         }
         else {
             //if not, search by show title
-            this.api(key).getSeries(showTitle, function (err, res) {
+            this.api.getSeries(showTitle, function (err, res) {
                 console.log("theTVDB Searching by show title:" + showTitle);
                 mainCallback(_this, err, res, callback, series);
             });
@@ -105,7 +106,7 @@ function TheTvDbParser(key) {
 
 
             //get episodes list from the chosen series
-            _this.api(key).getFullSeriesInfoById(seriesId, function (err, res) {
+            _this.api.getFullSeriesInfoById(seriesId, function (err, res) {
                 if (!err) {
                     callback(updateSeriesData(series, res));
                     return true;

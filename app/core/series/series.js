@@ -227,60 +227,74 @@ Series.prototype.saveSeries = function (callback) {
         var Sequelize = models.Sequelize;
 
 
-        mSeries = ModelSeries.find(
-            {
-                where: //one of the following statements is true
-                    Sequelize.or(      //at least on of the ID's match
-                        {
+        models.sequelize.transaction(function (t) {
+            mSeries = ModelSeries.find(
+                {
+                    where: //one of the following statements is true
+                        Sequelize.or(      //at least on of the ID's match
+                            {
+                                imdbid: _this.imdbid,
+                                kpid: _this.kpid,
+                                thetvdbid: _this.thetvdbid,
+                                tvrageid: _this.tvrageid
+                            },
+                            Sequelize.and( //both titles match (if no ID's are present
+                                {
+                                    title_ru: _this.title_ru,
+                                    title_en: _this.title_en
+                                }
+                            )
+                        )
+                },
+                { transaction: t }
+            );
+
+
+            mSeries.success(function (series) {
+                //gonna create new Series object, if such series doesn't exist in the database
+                if (!series) {
+                    mSeries = ModelSeries.create({
+                            title_ru: _this.title_ru,
+                            title_en: _this.title_en,
                             imdbid: _this.imdbid,
                             kpid: _this.kpid,
                             thetvdbid: _this.thetvdbid,
-                            tvrageid: _this.tvrageid
+                            tvrageid: _this.tvrageid,
+                            status: _this.status,
+                            description: _this.description
                         },
-                        Sequelize.and( //both titles match (if no ID's are present
-                            {
-                                title_ru: _this.title_ru,
-                                title_en: _this.title_en
-                            }
-                        )
-                    )
-            }
-        );
+                        { transaction: t });
+
+                    mSeries.success(function (series) {
+                        performActualDataSave(t, series);
+                    });
+                }
+                //we have found such series in the database, just write into it
+                else {
+                    performActualDataSave(t, series);
+                }
+            });
+
+            mSeries.error(function (err) {
+                console.log('ERR DB:' + err);
+            });
 
 
-        mSeries.success(function (series) {
-            //gonna create new Series object, if such series doesn't exist in the database
-            if (!series) {
-                mSeries = ModelSeries.create({
-                    title_ru: _this.title_ru,
-                    title_en: _this.title_en,
-                    imdbid: _this.imdbid,
-                    kpid: _this.kpid,
-                    thetvdbid: _this.thetvdbid,
-                    tvrageid: _this.tvrageid,
-                    status: _this.status,
-                    description: _this.description
-                });
+            t.commit().success(function () {
+                console.log("Transaction success!");
+            })
 
-                mSeries.success(function (series) {
-                    performActualDataSave(series);
-                });
-            }
-            //we have found such series in the database, just write into it
-            else {
-                performActualDataSave(series);
-            }
+            t.done(function () {
+                console.log("100% DONE!");
+            })
         });
-
-        mSeries.error(function (err) {
-            console.log('ERR DB:' + err);
-        });
+        //----------------------END OF TRANSACTION
 
 
         callback(this);
 
 
-        function performActualDataSave(series) {
+        function performActualDataSave(t, series) {
 
             var mSeason,
                 mEpisode,
@@ -291,27 +305,31 @@ Series.prototype.saveSeries = function (callback) {
             //save posters
             for (i = 0; i < _this.poster.length; i++) {
                 ModelPoster.findOrCreate({
-                    url: _this.poster[i]
-                }).success(function (poster) {
-                        poster.setSeries(series);
+                        url: _this.poster[i]
+                    },
+                    { transaction: t }
+                ).success(function (poster) {
+                        poster.setSeries(series, { transaction: t });
                     });
             }
 
             //save genres
             ModelGenre.findAll({
-                where: {id: _this.genre}
-            }).success(function (genres) {
-                    series.setGenres(genres);
+                    where: {id: _this.genre}
+                },
+                { transaction: t }).success(function (genres) {
+                    series.setGenres(genres, { transaction: t });
                     console.log("Saved " + genres.length + " genres for series " + series.title_ru);
                 });
 
             //save people
             for (i = 0; i < _this.people.length; i++) {
                 ModelPerson.findOrCreate({
-                    name_ru: _this.people[i]
-                }).success(function (person) {
+                        name_ru: _this.people[i]
+                    },
+                    { transaction: t }).success(function (person) {
                         console.log("Person " + JSON.stringify(person) + " created");
-                        person.addSeries(series).success(function (s) {
+                        person.addSeries(series, { transaction: t }).success(function (s) {
                             console.log("Person updated!");
                         });
 
@@ -329,10 +347,10 @@ Series.prototype.saveSeries = function (callback) {
                 mSeason = ModelSeason.findOrCreate({
                     number: i,
                     SeriesId: series.id
-                }).success(function (season) {
+                }, { transaction: t }).success(function (season) {
                         var seasonNumber = season.values.number;
                         console.log("Saved season " + seasonNumber + " for series " + series.values.id);
-                        season.setSeries(series)
+                        season.setSeries(series, { transaction: t })
                             .success(function () {
                                 console.log("Season " + seasonNumber + " updated");
                             });
@@ -347,8 +365,7 @@ Series.prototype.saveSeries = function (callback) {
                             mEpisode = ModelEpisode.findOrCreate({
                                 number: j,
                                 SeasonId: season.id
-                            }).success(function (episode) {
-                                    console.log("Episode:" + JSON.stringify(episode));
+                            }, { transaction: t }).success(function (episode) {
                                     if (!episode.title) episode.title = _this.season[seasonNumber].episode[episode.number].name;
                                     if (!episode.duration) episode.duration = 40;
                                     if (!episode.air_date) episode.air_date = new Date();
@@ -357,8 +374,8 @@ Series.prototype.saveSeries = function (callback) {
 
                                     var episodeNumber = episode.number;
                                     //perform episode save
-                                    episode.save();
-                                    episode.setSeason(season);
+                                    episode.save({ transaction: t });
+                                    episode.setSeason(season, { transaction: t });
 
                                     //now save videos for each episode
                                     //console.log(_this.season[seasonNumber].episode[episode.number].thumbnail);
@@ -368,10 +385,10 @@ Series.prototype.saveSeries = function (callback) {
                                         mVideo = ModelVideo.findOrCreate({
                                             url: _this.season[seasonNumber].episode[episodeNumber].video[k].url,
                                             EpisodeId: episode.id
-                                        }).success(function (video) {
+                                        }, { transaction: t }).success(function (video) {
                                                 //update only title of the video. Type should have been already set by this moment
                                                 if (!video.title) video.title = episode.title;
-                                                video.setEpisode(episode).success(function (video) {
+                                                video.setEpisode(episode, { transaction: t }).success(function (video) {
                                                     //all done!
                                                     console.log("Updated video with url" + video.values.url + " for " + seasonNumber + 'x' + episodeNumber);
                                                 });

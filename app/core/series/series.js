@@ -200,7 +200,7 @@ Series.prototype.addShow = function (callback) {
     var MS = require('../../parsers/myshows');
     var myShowsParser = new MS(_this.getApp());
     var TVDB = require("../../parsers/thetvdb");
-    var theTvDbParser = new TVDB(_this.getApp(),CONFIG.parsers.thetvdb.api_key);
+    var theTvDbParser = new TVDB(_this.getApp(), CONFIG.parsers.thetvdb.api_key);
 
     myShowsParser.show.searchForShow(this, function (obj) {
         if (obj) _this.merge(obj);
@@ -224,28 +224,73 @@ Series.prototype.saveSeries = function (callback) {
         var ModelPoster = models.Poster;
         var ModelGenre = models.Genre;
         var ModelPerson = models.Person;
+        var Sequelize = models.Sequelize;
 
-        var mSeries = ModelSeries.create({
-            title_ru: _this.title_ru,
-            title_en: _this.title_en,
-            imdbid: _this.imdbid,
-            kpid: _this.kpid,
-            thetvdbid: _this.thetvdbid,
-            tvrageid: _this.tvrageid,
-            status: _this.status,
-            description: _this.description
-        });
 
-        var mSeason,
-            mEpisode,
-            mVideo,
-            mPoster,
-            i, j, k;
+        mSeries = ModelSeries.find(
+            {
+                where: //one of the following statements is true
+                    Sequelize.or(      //at least on of the ID's match
+                        {
+                            imdbid: _this.imdbid,
+                            kpid: _this.kpid,
+                            thetvdbid: _this.thetvdbid,
+                            tvrageid: _this.tvrageid
+                        },
+                        Sequelize.and( //both titles match (if no ID's are present
+                            {
+                                title_ru: _this.title_ru,
+                                title_en: _this.title_en
+                            }
+                        )
+                    )
+            }
+        );
+
 
         mSeries.success(function (series) {
+            //gonna create new Series object, if such series doesn't exist in the database
+            if (!series) {
+                mSeries = ModelSeries.create({
+                    title_ru: _this.title_ru,
+                    title_en: _this.title_en,
+                    imdbid: _this.imdbid,
+                    kpid: _this.kpid,
+                    thetvdbid: _this.thetvdbid,
+                    tvrageid: _this.tvrageid,
+                    status: _this.status,
+                    description: _this.description
+                });
+
+                mSeries.success(function (series) {
+                    performActualDataSave(series);
+                });
+            }
+            //we have found such series in the database, just write into it
+            else {
+                performActualDataSave(series);
+            }
+        });
+
+        mSeries.error(function (err) {
+            console.log('ERR DB:' + err);
+        });
+
+
+        callback(this);
+
+
+        function performActualDataSave(series) {
+
+            var mSeason,
+                mEpisode,
+                mVideo,
+                mPoster,
+                i, j, k;
+
             //save posters
             for (i = 0; i < _this.poster.length; i++) {
-                ModelPoster.create({
+                ModelPoster.findOrCreate({
                     url: _this.poster[i]
                 }).success(function (poster) {
                         poster.setSeries(series);
@@ -262,26 +307,28 @@ Series.prototype.saveSeries = function (callback) {
 
             //save people
             for (i = 0; i < _this.people.length; i++) {
-                ModelPerson.create({
-                    name: _this.people[i]
+                ModelPerson.findOrCreate({
+                    name_ru: _this.people[i]
                 }).success(function (person) {
                         console.log("Person " + JSON.stringify(person) + " created");
-                        person.addSeries(series).success(function (p) {
-                            console.log("Person " + p.name + " SET to series");
+                        person.addSeries(series).success(function (s) {
+                            console.log("Person updated!");
                         });
 
                     });
             }
 
             //save Seasons here
-            console.log("Series saved:" + _this.season.length);
+            console.log("Seasons saved:" + _this.season.length);
             //save seasons
             for (i = 0; i < _this.season.length; i++) {
                 if (!is.object(_this.season[i])) continue;
                 //got season
                 console.log("Saving season " + i);
-                mSeason = ModelSeason.create({
-                    number: i
+
+                mSeason = ModelSeason.findOrCreate({
+                    number: i,
+                    SeriesId: series.id
                 }).success(function (season) {
                         var seasonNumber = season.values.number;
                         console.log("Saved season " + seasonNumber + " for series " + series.values.id);
@@ -293,35 +340,41 @@ Series.prototype.saveSeries = function (callback) {
                         //now save episodes from each season
                         for (j = 0; j < _this.season[seasonNumber].episode.length; j++) {
                             if (!is.object(_this.season[seasonNumber].episode[j])) continue;
-                            //got episode
-                            mEpisode = ModelEpisode.create({
+
+                            //let's try to find this episode in the DB
+                            //@TODO: error while saving episode (sync loop with async getEpisode request)
+
+                            mEpisode = ModelEpisode.findOrCreate({
                                 number: j,
-                                title: _this.season[seasonNumber].episode[j].name,
-                                duration: 40,
-                                air_date: new Date(),
-                                description: _this.season[seasonNumber].episode[j].description,
-                                thumbnail: _this.season[seasonNumber].episode[j].thumbnail
-                            })
-                                .success(function (episode) {
-                                    var episodeNumber = episode.values.number;
-                                    episode.setSeason(season)
-                                        .success(function () {
-                                            console.log("Saved episode " + seasonNumber + 'x' + episodeNumber);
-                                        });
+                                SeasonId: season.id
+                            }).success(function (episode) {
+                                    console.log("Episode:" + JSON.stringify(episode));
+                                    if (!episode.title) episode.title = _this.season[seasonNumber].episode[episode.number].name;
+                                    if (!episode.duration) episode.duration = 40;
+                                    if (!episode.air_date) episode.air_date = new Date();
+                                    if (!episode.description) episode.description = _this.season[seasonNumber].episode[episode.number].description;
+                                    if (!episode.thumbnail) episode.thumbnail = _this.season[seasonNumber].episode[episode.number].thumbnail;
+
+                                    var episodeNumber = episode.number;
+                                    //perform episode save
+                                    episode.save();
+                                    episode.setSeason(season);
 
                                     //now save videos for each episode
+                                    //console.log(_this.season[seasonNumber].episode[episode.number].thumbnail);
                                     for (k = 0; k < _this.season[seasonNumber].episode[episodeNumber].video.length; k++) {
                                         if (!is.object(_this.season[seasonNumber].episode[episodeNumber].video[k])) continue;
                                         //got video
-                                        mVideo = ModelVideo.create({
-                                            title: episode.values.title,
+                                        mVideo = ModelVideo.findOrCreate({
                                             url: _this.season[seasonNumber].episode[episodeNumber].video[k].url,
-                                            type: _this.season[seasonNumber].episode[episodeNumber].video[k].type
+                                            EpisodeId: episode.id
                                         }).success(function (video) {
-                                                video.setEpisode(episode)
-                                                    .success(function () {
-                                                        console.log("Saved video with url" + video.values.url + " for " + seasonNumber + 'x' + episodeNumber);
-                                                    });
+                                                //update only title of the video. Type should have been already set by this moment
+                                                if (!video.title) video.title = episode.title;
+                                                video.setEpisode(episode).success(function (video) {
+                                                    //all done!
+                                                    console.log("Updated video with url" + video.values.url + " for " + seasonNumber + 'x' + episodeNumber);
+                                                });
                                             });
                                     }
                                 });
@@ -331,14 +384,8 @@ Series.prototype.saveSeries = function (callback) {
                         console.log('Season save fail:' + err);
                     });
             }
-        });
+        }
 
-        mSeries.error(function (err) {
-            console.log('ERR DB:' + err);
-        });
-
-
-        callback(this);
     }
     catch (err) {
         console.log("ERR HAPPENED:" + err);

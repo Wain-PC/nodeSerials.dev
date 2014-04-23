@@ -1,7 +1,7 @@
 module.exports = function (db, DataTypes) {
     var Poster = db.define('Poster',
         {
-            url: DataTypes.STRING
+            url: {type: DataTypes.STRING, unique: true}
         },
         {freezeTableName: true});
 

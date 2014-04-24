@@ -8,9 +8,9 @@ var Series = function (app) {
         this.imdbid = 0,
         this.kpid = 0,
         this.tvrageid = 0,
+        this.thetvdbid = 0,
         this.status = "",
-        this.year,
-        this.thetvdbid = 0;
+        this.year;
 
     //setting arrays structure
     this.genre = [],
@@ -197,16 +197,20 @@ Series.prototype.addShow = function (callback) {
     }
 
     var CONFIG = require('../../core/config');
+    var GOOGLE = require("../../parsers/google")
+    var googleParser = new GOOGLE(_this.getApp());
     var MS = require('../../parsers/myshows');
     var myShowsParser = new MS(_this.getApp());
     var TVDB = require("../../parsers/thetvdb");
     var theTvDbParser = new TVDB(_this.getApp(), CONFIG.parsers.thetvdb.api_key);
 
-    myShowsParser.show.searchForShow(this, function (obj) {
-        if (obj) _this.merge(obj);
-        theTvDbParser.show.searchForShow(_this, function (obj) {
+    googleParser.show.searchForShow(this, function (obj) {
+        myShowsParser.show.searchForShow(_this, function (obj) {
             if (obj) _this.merge(obj);
-            _this.saveSeries(callback);
+            theTvDbParser.show.searchForShow(_this, function (obj) {
+                if (obj) _this.merge(obj);
+                _this.saveSeries(callback);
+            });
         });
     });
 };
@@ -231,13 +235,11 @@ Series.prototype.saveSeries = function (callback) {
             mSeries = ModelSeries.find(
                 {
                     where: //one of the following statements is true
-                        Sequelize.or(      //at least on of the ID's match
-                            {
-                                imdbid: _this.imdbid,
-                                kpid: _this.kpid,
-                                thetvdbid: _this.thetvdbid,
-                                tvrageid: _this.tvrageid
-                            },
+                        Sequelize.or(      //at least on of the ID's match (if NOT 0)
+                            {imdbid: (_this.imdbid == 0 ? -1 : _this.imdbid)},
+                            {kpid: (_this.kpid == 0 ? -1 : _this.kpid)},
+                            {thetvdbid: (_this.thetvdbid == 0 ? -1 : _this.thetvdbid)},
+                            {tvrageid: (_this.tvrageid == 0 ? -1 : _this.tvrageid)},
                             Sequelize.and( //both titles match (if no ID's are present
                                 {
                                     title_ru: _this.title_ru,

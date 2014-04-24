@@ -20,27 +20,14 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        var request = new Request(app, USER_AGENT, 'GET');
-
-        request.makeDeferredRequest(BASE_URL, rqData, function(error,response,body){
-            try {
-                var items = JSON.parse(body),
-                    i= 0,
-                    id;
-                items = items.data;
-                for(i=0;i<items.length;i++) {
-                    id = items[i].id;
-                    comdirHandler(id);
-                }
-            }
-            catch(e) {
-                res.send(500,'Error!:'+e);
-            }
-        });
+        comdirHandler(1);  //series
+        comdirHandler(3);  //animated series
+        comdirHandler(5);  //tv shows
+        comdirHandler(6);  //anime
     }
 
 
-    function comdirHandler(id,page) {
+    function comdirHandler(id, page) {
         page = page || 0; //dirty hack
         var itemsPerPage = 20; //hardcoded
         var rqData = {
@@ -50,24 +37,24 @@ module.exports = function (app) {
         };
 
         var request = new Request(app, USER_AGENT, 'GET');
-        request.makeDeferredRequest(BASE_URL, rqData, function(error,response,body) {
+        request.makeDeferredRequest(BASE_URL, rqData, function (error, response, body) {
             try {
                 var items = JSON.parse(body),
-                    i= 0,
+                    i = 0,
                     id;
                 items = items.data;
-                for(i=0;i<items.length;i++) {
+                for (i = 0; i < items.length; i++) {
                     id = items[i].id;
-                    subdirHandler(id,0);
+                    subdirHandler(id, 0);
                 }
             }
-            catch(e) {
-                console.log('Error!:'+e);
+            catch (e) {
+                console.log('Error in comDirHandler! Error:' + e + ' Json body:' + body);
             }
         });
     }
 
-    function subdirHandler(id,page) {
+    function subdirHandler(id, page) {
         page = page || 0; //dirty hack
         var itemsPerPage = 20; //hardcoded
         var rqData = {
@@ -82,7 +69,7 @@ module.exports = function (app) {
         request.makeDeferredRequest(BASE_URL, rqData, onsubDirRequestFinished);
     }
 
-    function itemHandler(id,season) {
+    function itemHandler(id, season) {
         var rqData = {
             id: 'video',
             video: id
@@ -91,15 +78,22 @@ module.exports = function (app) {
         var request = new Request(app, USER_AGENT, 'GET');
         request.makeDeferredRequest(BASE_URL, rqData, function (error, response, body) {
 
-            var obj = JSON.parse(body);
-            //if we've got the season number earlier, inject it to json
-            if (season) {
-                obj.season = season;
+            try {
+                var obj = JSON.parse(body);
+                //if we've got the season number earlier, inject it to json
+                if (season) {
+                    obj.season = season;
+                }
+                var series = getFilledSeries(obj);
+                series.addShow(function (res) {
+                    //series added to the DB!
+                });
             }
-            var series = getFilledSeries(obj);
-            series.addShow(function (res) {
-                RES.end(JSON.stringify(res));
-            });
+            catch (e) {
+                console.log("Error in itemHandler, probably JSON parsing related. JSON Body:" + body);
+            }
+
+
         });
     }
 

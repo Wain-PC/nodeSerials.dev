@@ -16,12 +16,13 @@ app.use(app.router);
 app.set('models', require('./database/models'));
 
 //set config
-app.set('config',require('./core/config'));
+app.set('config', require('./core/config'));
 
 //set deferred request queue
 var Q = require('./core/queue');
 Q = new Q(app);
-Q.startDynamicRequestExecution();
+Q.setMaxListeners(100);
+//Q.startDynamicRequestExecution();
 
 app.set('queue', Q);
 

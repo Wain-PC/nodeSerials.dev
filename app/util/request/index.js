@@ -134,8 +134,8 @@ Request.prototype.makeDeferredRequest = function (url, data, callback) {
     function deferredRequestAnswered(requestId, error, response, body, callback) {
         //check if it's really our request, not someone else's
         if (requestId == _this.requestId) {
-            console.log("YESH! Mine request!");
             _this.Q.removeListener('done', deferredRequestAnswered);
+            console.log("YESH! Mine request! Listener removed.");
             _this.Q.removeItemByRequestId(requestId, function () {
                 _this._onResponse(error, response, body, callback);
             });

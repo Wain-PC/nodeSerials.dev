@@ -1,7 +1,7 @@
-function TheTvDbParser(app,key) {
+function TheTvDbParser(app, key) {
     this.key = key;
     this.api = require("./api.js");
-    this.api = new this.api(app,key);
+    this.api = new this.api(app, key);
     this.show = {};
     this.util = {};
     this.util.compare = require('../../util/compare');
@@ -246,7 +246,7 @@ function TheTvDbParser(app,key) {
                 continue;
             }
 
-            console.log("Updating info for season " + seasonNumber + " ep:" + episodeNumber);
+            console.log("Updating info for season " + seasonNumber + " ep:" + episodeNumber + " : " + tvdbEpisode.EpisodeName);
             if (is.string(tvdbEpisode.EpisodeName)) episode.name = tvdbEpisode.EpisodeName;
             if (is.string(tvdbEpisode.Overview)) episode.description = tvdbEpisode.Overview;
             if (is.imageURL(baseImageURL + tvdbEpisode.filename)) {

@@ -361,9 +361,6 @@ Series.prototype.saveSeries = function (callback) {
                         for (j = 0; j < _this.season[seasonNumber].episode.length; j++) {
                             if (!is.object(_this.season[seasonNumber].episode[j])) continue;
 
-                            //let's try to find this episode in the DB
-                            //@TODO: error while saving episode (sync loop with async getEpisode request)
-
                             mEpisode = ModelEpisode.findOrCreate({
                                 number: j,
                                 SeasonId: season.id
@@ -390,9 +387,9 @@ Series.prototype.saveSeries = function (callback) {
                                         }, { transaction: t }).success(function (video) {
                                                 //update only title of the video. Type should have been already set by this moment
                                                 if (!video.title) video.title = episode.title;
+                                                video.save();
                                                 video.setEpisode(episode, { transaction: t }).success(function (video) {
                                                     //all done!
-                                                    //console.log("Updated video with url" + video.values.url + " for " + seasonNumber + 'x' + episodeNumber);
                                                 });
                                             });
                                     }

@@ -32,7 +32,7 @@ module.exports = function (app) {
 
     app.get("/api/request/put", function (request, response) {
         var Q = this.app.get('queue');
-        Q.rrxResponseReceived(request.query,function(status){
+        Q.rrxResponseReceived(request.query, function (status) {
             response.send(status);
         })
     });
@@ -68,7 +68,10 @@ module.exports = function (app) {
                 {model: this.model.Poster, as: 'Poster'}
             ]
         }).success(function (series) {
-                console.log(series.season[0].episode[0].values);
+                if (!series) {
+                    callback(null);
+                    return false;
+                }
                 callback(series.values);
             });
     };
@@ -83,7 +86,6 @@ module.exports = function (app) {
                 ["title_en LIKE ?", '%' + name + '%']
             )
         }).success(function (result) {
-                console.log(result);
                 callback(result.rows);
             });
     }
@@ -157,10 +159,15 @@ module.exports = function (app) {
         var id = request.params.id;
         var jsonOutput = (request.query.json == 1);
         if (!id) {
-            response.send({});
+            response.send(404);
             return false;
         }
         f.getSeriesById(request.params.id, function (res) {
+            //if nothing found, return 404
+            if (!res) {
+                response.send(404);
+                return false;
+            }
             if (!jsonOutput) {
                 response.render('series',
                     { dataArray: res }

@@ -29,7 +29,6 @@ var Series = function (app) {
     };
 
     this.createEpisode = function (s, e, video) {
-        //create season (if not exists)
         var is = require('../../util/is');
         var result;
 
@@ -60,6 +59,7 @@ var Series = function (app) {
 
     this.updateEpisode = function (s, e, video) {
         try {
+            this.season[s].episode[e].title = "Серия " + e;
             this.season[s].episode[e].video.push({
                 url: video.url,
                 type: video.type
@@ -368,7 +368,7 @@ Series.prototype.saveSeries = function (callback) {
                                 number: j,
                                 SeasonId: season.id
                             }, { transaction: t }).success(function (episode) {
-                                    if (!episode.title) episode.title = _this.season[seasonNumber].episode[episode.number].name;
+                                    if (is.string(_this.season[seasonNumber].episode[episode.number].title)) episode.title = _this.season[seasonNumber].episode[episode.number].title;
                                     if (!episode.duration) episode.duration = 40;
                                     if (!episode.air_date) episode.air_date = new Date();
                                     if (!episode.description) episode.description = _this.season[seasonNumber].episode[episode.number].description;
@@ -392,7 +392,7 @@ Series.prototype.saveSeries = function (callback) {
                                                 if (!video.title) video.title = episode.title;
                                                 video.setEpisode(episode, { transaction: t }).success(function (video) {
                                                     //all done!
-                                                    console.log("Updated video with url" + video.values.url + " for " + seasonNumber + 'x' + episodeNumber);
+                                                    //console.log("Updated video with url" + video.values.url + " for " + seasonNumber + 'x' + episodeNumber);
                                                 });
                                             });
                                     }
@@ -410,15 +410,6 @@ Series.prototype.saveSeries = function (callback) {
         console.log("ERR HAPPENED:" + err);
     }
 };
-
-var sayAllDone = function (err, items) {
-    if (!err) {
-        console.log("DB WRITE DONE:" + JSON.stringify(items));
-        return true;
-    }
-    else console.log("DB WRITE ERROR:" + JSON.stringify(err));
-    return false;
-}
 
 Series.prototype.merge = require('../../util/merge');
 

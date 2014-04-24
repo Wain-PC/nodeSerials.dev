@@ -98,6 +98,9 @@ Request.prototype._onResponse = function (error, response, body, callback) {
     if (response.statusCode != 200) {
         console.log("Request error, code " + response.statusCode);
         this.emit('fail', error, response, body);
+        if (callback) {
+            callback(error, response, body);
+        }
         return false;
     }
     //console.log("Got body: " + body);

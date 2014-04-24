@@ -28,7 +28,7 @@ module.exports = function (app) {
     });
 
     //add frontend as well
-    modulesList.push('frontend/latest');
+    modulesList.push('api/latest');
 
     app.get("/", function (request, response) {
         console.log(JSON.stringify(modulesList));

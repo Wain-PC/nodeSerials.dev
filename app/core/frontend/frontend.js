@@ -14,13 +14,38 @@ module.exports = function (app) {
         this.S = models.Sequelize;
     };
 
+    //--------Direct links provider API
+
+    app.get("/api/getdirectlink", function (request, response) {
+        try {
+            var providers = require('../../providers'),
+                url = request.query.url;
+            url = decodeURIComponent(url);
+            console.log("Getting direct link for " + url);
+            if (!url) response.send(404);
+            providers.getDirectLink(app, url, function (directURL) {
+                console.log("DURL:" + directURL);
+                if (!directURL) response.send(404);
+                else response.send(directURL);
+            });
+        }
+        catch (e) {
+            console.log("Error while getting direct URL for video " + url + " " + e);
+            response.send(500);
+        }
+    });
+
+
+    //--------end Direct links provider API
+
+    //--------Deferred request API
+
     Frontend.prototype.provideDeferredRequestData = function (callback) {
         var Q = this.app.get('queue');
         Q.pull(function (item) {
             callback(item);
         });
     };
-
 
     app.get("/api/request/get", function (request, response) {
         var Q = this.app.get('queue');
@@ -36,6 +61,8 @@ module.exports = function (app) {
             response.send(status);
         })
     });
+
+    //--------Deferred request API end
 
     Frontend.prototype.getLatestSeries = function (limit, callback) {
         var Series = this.model.Series;

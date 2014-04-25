@@ -103,7 +103,6 @@ function getVideoLink(request, url, callback) {
                 var video_vtag = v.match("var video_vtag = '(.*)'")[1];
                 var video_no_flv = v.match("video_no_flv =(.*);")[1];
                 var video_max_hd = v.match("var video_max_hd = '(.*)'")[1];
-                console.log(video_no_flv);
 
             }
             catch (err) {

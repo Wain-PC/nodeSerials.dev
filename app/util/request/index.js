@@ -40,6 +40,8 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
     };
     var type = _this.TYPE;
 
+    if (!data) data = {};
+
     switch (type) {
         case 'GET':
         {

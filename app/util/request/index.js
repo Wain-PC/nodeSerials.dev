@@ -11,8 +11,9 @@ var EVENTS = require('events');
 var merge = require('../merge');
 
 function Request(app, userAgent, type) {
-    this.USER_AGENT = userAgent;
-    this.TYPE = type;
+    var config = app.get('config');
+    this.USER_AGENT = userAgent ? userAgent : config.http.userAgent.desktop.firefox;
+    this.TYPE = type ? type : 'GET';
     this.app = app;
     this.Q = app.get('queue');
 
@@ -33,20 +34,29 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
         headers: {
             'User-Agent': USER_AGENT
         },
-        method: 'GET',
+        method: _this.TYPE,
         followRedirect: true,
         followAllRedirects: true
     };
     var type = _this.TYPE;
 
-    //allow merging for options
-    requestOptions.merge = merge;
-
     switch (type) {
         case 'GET':
+        {
+            //in case of GET request, parameters might be provided within the query string.
+            //one should extract them (split the string to url string and query object) to store it properly during request execution.
+            var re = /^(.*)\?(.*)$/; //this RegExp matches '?' symbol in the URL.
+            re = re.exec(url);
+            if (re) {
+                url = re[1];
+                merge.call(data, QS.parse(re[2]));
+                console.log(data);
+            }
+
+        }
         case 'POST':
         {
-            requestOptions.merge({
+            merge.call(requestOptions, {
                     url: url,
                     method: type}
             );
@@ -60,20 +70,13 @@ Request.prototype.makeRequest = function (url, data, callback, params) {
         }
     }
 
+
     if (data) {
-
-        if (type = "GET") {
-            requestOptions.merge({qs: data});
-        }
-
-        else if (type = "POST") {
-            requestOptions.merge({data: QS.stringify(data)});
-        }
-
+        merge.call(requestOptions, {qs: data});
     }
 
     if (params) {
-        requestOptions.merge(params);
+        merge.call(requestOptions, params);
     }
 
     console.log('Sending ' + type + ' request to: ' + url + JSON.stringify(requestOptions));

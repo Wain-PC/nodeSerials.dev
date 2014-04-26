@@ -4,7 +4,8 @@ module.exports =
         name: 'nodeserials',
         host: 'localhost',
         login: 'root',
-        password: ''
+        password: '',
+        forceClearOnStart: false
     },
     http: {
         userAgent: {
@@ -24,8 +25,9 @@ module.exports =
         }
     },
     rrx: {
+        startWithApp: false,
         timeout: {
-            checkQueue: 5,
+            checkQueue: 10,
             noRemoteDevices: 10,
             remoteDeviceResponse: 30
         }

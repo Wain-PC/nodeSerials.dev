@@ -21,9 +21,9 @@ module.exports = function (app) {
         NEXT = next;
 
         comdirHandler(1);  //series
-        comdirHandler(3);  //animated series
-        comdirHandler(5);  //tv shows
-        comdirHandler(6);  //anime
+        //comdirHandler(3);  //animated series
+        //comdirHandler(5);  //tv shows
+        //comdirHandler(6);  //anime
     }
 
 

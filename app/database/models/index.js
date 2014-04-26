@@ -54,7 +54,11 @@ models.forEach(function (model) {
 })(module.exports);
 
 //sync database
-sequelize.sync({force: true})
+var forceSync = !!((require('../../core/config')).database.forceClearOnStart);
+
+console.log("FS:" + forceSync);
+
+sequelize.sync(forceSync ? {force: true} : null)
     .success(function () {
         console.log("Sync success!");
     })

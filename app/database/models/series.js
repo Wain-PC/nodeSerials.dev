@@ -8,7 +8,7 @@ module.exports = function (db, DataTypes) {
             thetvdbid: {type: DataTypes.INTEGER, defaultValue: 0},
             tvrageid: {type: DataTypes.INTEGER, defaultValue: 0},
             status: DataTypes.STRING,
-            description: DataTypes.STRING
+            description: DataTypes.TEXT
         },
         {freezeTableName: true});
 

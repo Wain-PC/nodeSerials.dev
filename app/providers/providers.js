@@ -144,7 +144,7 @@ function getVideoLink(request, url, callback) {
             request.makeRequest('http://moonwalk.cc/sessions/create_session', {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
                 console.log(resJSON);
                 resJSON = JSON.parse(resJSON);
-                result_url = 'hls:' + resJSON.manifest_m3u8;
+                result_url = resJSON.manifest_m3u8;
                 if (callback) callback(result_url);
             });
 

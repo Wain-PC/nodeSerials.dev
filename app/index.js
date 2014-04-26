@@ -22,7 +22,7 @@ app.set('config', require('./core/config'));
 var Q = require('./core/queue');
 Q = new Q(app);
 Q.setMaxListeners(100);
-//Q.startDynamicRequestExecution();
+if (app.get('config').rrx.startWithApp) Q.startDynamicRequestExecution();
 
 app.set('queue', Q);
 

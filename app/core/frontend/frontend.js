@@ -36,6 +36,26 @@ module.exports = function (app) {
     });
 
 
+    app.get("/api/getepisodedirectvideo", function (request, response) {
+        try {
+            var providers = require('../../providers'),
+                url = request.query.url;
+            url = decodeURIComponent(url);
+            console.log("Getting direct link for " + url);
+            if (!url) response.send(404);
+            providers.getDirectLink(app, url, function (directURL) {
+                console.log("DURL:" + directURL);
+                if (!directURL) response.send(404);
+                else response.send(directURL);
+            });
+        }
+        catch (e) {
+            console.log("Error while getting direct URL for video " + url + " " + e);
+            response.send(500);
+        }
+    });
+
+
     //--------end Direct links provider API
 
     //--------Deferred request API
@@ -63,59 +83,6 @@ module.exports = function (app) {
     });
 
     //--------Deferred request API end
-
-    Frontend.prototype.getLatestSeries = function (limit, callback) {
-        var Series = this.model.Series;
-        var res = [];
-        Series.findAndCountAll({
-            order: 'id DESC',
-            limit: limit,
-            include: [
-                {model: this.model.Poster, as: 'Poster'}
-            ]
-        }).success(function (result) {
-                callback(result.rows);
-            });
-    };
-
-    Frontend.prototype.getSeriesById = function (id, callback) {
-
-        this.model.Series.find({
-            where: {
-                id: id
-            },
-            include: [
-                {model: this.model.Season, as: 'Season',
-                    include: [
-                        {model: this.model.Episode, as: 'Episode',
-                            include: [
-                                {model: this.model.Video, as: 'Video'}
-                            ]}
-                    ]},
-                {model: this.model.Poster, as: 'Poster'}
-            ]
-        }).success(function (series) {
-                if (!series) {
-                    callback(null);
-                    return false;
-                }
-                callback(series.values);
-            });
-    };
-
-
-    Frontend.prototype.findSeriesByName = function (name, callback) {
-        var Series = this.model.Series;
-
-        Series.findAndCountAll({
-            where: this.S.or(
-                ["title_ru LIKE ?", '%' + name + '%'],
-                ["title_en LIKE ?", '%' + name + '%']
-            )
-        }).success(function (result) {
-                callback(result.rows);
-            });
-    }
 
 
     //check for valid key when using API
@@ -145,23 +112,21 @@ module.exports = function (app) {
      });
      });*/
 
-    app.get("/api/latest", function (request, response) {
-        var f = new Frontend(app);
-        var jsonOutput = (request.query.json == 1);
-        f.getLatestSeries(100, function (res) {
-            if (!jsonOutput) {
-                response.render('seriesList',
-                    { dataArray: res, rawData: JSON.stringify(res)}
-                );
-            }
-            else {
-                console.log("Output total of " + res.length + " items");
-                response.send(res);
-            }
 
-        });
-    });
+    //-----------Search API
 
+    Frontend.prototype.findSeriesByName = function (name, callback) {
+        var Series = this.model.Series;
+
+        Series.findAndCountAll({
+            where: this.S.or(
+                ["title_ru LIKE ?", '%' + name + '%'],
+                ["title_en LIKE ?", '%' + name + '%']
+            )
+        }).success(function (result) {
+                callback(result.rows);
+            });
+    };
 
     app.get("/api/search", function (request, response) {
         var query = decodeURIComponent(request.query.q);
@@ -180,6 +145,38 @@ module.exports = function (app) {
             }
         });
     });
+
+
+    //-----------Search API END
+
+
+    //-----------Common API
+
+    Frontend.prototype.getSeriesById = function (id, callback) {
+
+        this.model.Series.find({
+            where: {
+                id: id
+            },
+            include: [
+                {model: this.model.Season, as: 'Season',
+                    include: [
+                        {model: this.model.Episode, as: 'Episode',
+                            include: [
+                                {model: this.model.Video, as: 'Video'}
+                            ]}
+                    ]},
+                {model: this.model.Poster, as: 'Poster'}
+            ]
+        }).success(function (series) {
+                if (!series) {
+                    callback(null);
+                    return false;
+                }
+                callback(series.values);
+            });
+    };
+
 
     app.get("/api/series/:id", function (request, response) {
         var f = new Frontend(app);
@@ -205,6 +202,42 @@ module.exports = function (app) {
             }
         });
     });
+
+
+    Frontend.prototype.getLatestSeries = function (limit, callback) {
+        var Series = this.model.Series;
+        var res = [];
+        Series.findAndCountAll({
+            order: 'id DESC',
+            limit: limit,
+            include: [
+                {model: this.model.Poster, as: 'Poster'}
+            ]
+        }).success(function (result) {
+                callback(result.rows);
+            });
+    };
+
+
+    app.get("/api/latest", function (request, response) {
+        var f = new Frontend(app);
+        var jsonOutput = (request.query.json == 1);
+        f.getLatestSeries(100, function (res) {
+            if (!jsonOutput) {
+                response.render('seriesList',
+                    { dataArray: res, rawData: JSON.stringify(res)}
+                );
+            }
+            else {
+                console.log("Output total of " + res.length + " items");
+                response.send(res);
+            }
+
+        });
+    });
+
+
+    //-----------Common API END
 
     //---------------------------
     //these are one-time methods for DB instantiation with data

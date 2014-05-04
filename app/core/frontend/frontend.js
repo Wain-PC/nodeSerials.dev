@@ -122,7 +122,10 @@ module.exports = function (app) {
             where: this.S.or(
                 ["title_ru LIKE ?", '%' + name + '%'],
                 ["title_en LIKE ?", '%' + name + '%']
-            )
+            ),
+            include: [
+                {model: this.model.Poster, as: 'Poster'}
+            ]
         }).success(function (result) {
                 callback(result.rows);
             });
@@ -154,7 +157,7 @@ module.exports = function (app) {
 
     Frontend.prototype.getSeriesById = function (id, callback) {
 
-        this.model.Series.find({
+        this.model.Series.findAll({
             where: {
                 id: id
             },
@@ -165,15 +168,27 @@ module.exports = function (app) {
                             include: [
                                 {model: this.model.Video, as: 'Video'}
                             ]}
-                    ]},
+                    ]
+                }
+                ,
                 {model: this.model.Poster, as: 'Poster'}
+            ], order: [
+                [
+                    {model: this.model.Season, as: 'Season'},
+                    'number'
+                ],
+                [
+                    {model: this.model.Season, as: 'Season'},
+                    {model: this.model.Episode, as: 'Episode'},
+                    'number'
+                ]
             ]
         }).success(function (series) {
                 if (!series) {
                     callback(null);
                     return false;
                 }
-                callback(series.values);
+                callback(series[0].values);
             });
     };
 
@@ -208,7 +223,7 @@ module.exports = function (app) {
         var Series = this.model.Series;
         var res = [];
         Series.findAndCountAll({
-            order: 'id DESC',
+            order: 'updatedAt DESC',
             limit: limit,
             include: [
                 {model: this.model.Poster, as: 'Poster'}

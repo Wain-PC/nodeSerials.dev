@@ -158,33 +158,37 @@ module.exports = function (app) {
     Frontend.prototype.getSeriesById = function (id, callback) {
 
         this.model.Series.findAll({
-            where: {
-                id: id
-            },
-            include: [
-                {model: this.model.Season, as: 'Season',
-                    include: [
-                        {model: this.model.Episode, as: 'Episode',
-                            include: [
-                                {model: this.model.Video, as: 'Video'}
-                            ]}
+                where: {
+                    id: id
+                },
+                include: [
+                    {model: this.model.Season, as: 'Season',
+                        include: [
+                            {model: this.model.Episode, as: 'Episode',
+                                include: [
+                                    {model: this.model.Video, as: 'Video'}
+                                ]}
+                        ]
+                    }
+                    ,
+                    {model: this.model.Poster, as: 'Poster'}
+                ], order: [
+                    [
+                        {model: this.model.Season, as: 'Season'},
+                        'number'
+                    ],
+                    [
+                        {model: this.model.Season, as: 'Season'},
+                        {model: this.model.Episode, as: 'Episode'},
+                        'number'
                     ]
-                }
-                ,
-                {model: this.model.Poster, as: 'Poster'}
-            ], order: [
-                [
-                    {model: this.model.Season, as: 'Season'},
-                    'number'
-                ],
-                [
-                    {model: this.model.Season, as: 'Season'},
-                    {model: this.model.Episode, as: 'Episode'},
-                    'number'
                 ]
-            ]
-        }).success(function (series) {
-                if (!series) {
+
+            }
+            // ,{ raw: true } //speedUP!
+        ).success(function (series) {
+                console.log(series.values);
+                if (!series || series.length == 0) {
                     callback(null);
                     return false;
                 }
@@ -251,12 +255,90 @@ module.exports = function (app) {
         });
     });
 
+    Frontend.prototype.getGenres = function (callback) {
+        var Genre = this.model.Genre;
+        Genre.findAndCountAll({
+            order: 'title_ru'
+        }).success(function (result) {
+                callback(result.rows);
+            });
+    };
+
+    app.get("/api/genres", function (request, response) {
+        var f = new Frontend(app);
+        var jsonOutput = (request.query.json == 1);
+        f.getGenres(function (res) {
+            if (!jsonOutput) {
+                response.render('genreList',
+                    { dataArray: res, rawData: JSON.stringify(res)}
+                );
+            }
+            else {
+                console.log("Output total of " + res.length + " items");
+                response.send(res);
+            }
+        });
+    });
+
+
+    Frontend.prototype.getGenreSeriesById = function (id, number, offset, callback) {
+
+        var _this = this;
+        var Genre = this.model.Genre;
+        var Poster = this.model.Season;
+
+        Poster.findAll().success(function (posters) {
+            console.log("Found " + posters.length + " posters");
+        });
+
+        Genre.find({
+            where: {
+                id: id
+            }
+        }).success(function (genre) {
+                console.log(genre.values);
+                if (!genre) {
+                    callback([]);
+                    return false;
+                }
+                ;
+                genre.getSer({
+                    // include: [Poster] //SHIT DOESN'T WORK
+                }).success(function (seriesArray) {
+                        callback(seriesArray);
+                        return true;
+                    });
+            });
+
+    };
+
+    app.get("/api/genre/:id", function (request, response) {
+        var f = new Frontend(app);
+        var id = request.params.id;
+        var jsonOutput = (request.query.json == 1);
+        if (!id) {
+            response.send(404);
+            return false;
+        }
+        f.getGenreSeriesById(id, 100, 0, function (res) {
+            if (!jsonOutput) {
+                response.render('seriesList',
+                    { dataArray: res, rawData: JSON.stringify(res)}
+                );
+            }
+            else {
+                console.log("Output total of " + res.length + " items");
+                response.send(res);
+            }
+        });
+    });
+
 
     //-----------Common API END
 
     //---------------------------
     //these are one-time methods for DB instantiation with data
-    Frontend.prototype._addGenres = function () {
+    Frontend.prototype._addGenres = function (callback) {
         var genreList = {
             "1": {
                 "title_en": "Comedy",
@@ -443,7 +525,7 @@ module.exports = function (app) {
             genre = genreList[i];
             if (!genre) continue;
 
-            Genre.create({
+            Genre.findOrCreate({
                 title_ru: genre.title_ru,
                 title_en: genre.title_en
             }).success(function (genre) {
@@ -453,7 +535,7 @@ module.exports = function (app) {
     }
 
 
-    Frontend.prototype._setSimilar = function () {
+    Frontend.prototype._setSimilar = function (callback) {
         var Genre = this.model.Genre;
         var genre, similarArr, i, j;
 
@@ -516,20 +598,23 @@ module.exports = function (app) {
                 if (!similarArr.length) continue; //continue if no similar genres defined
                 console.log("Assigning " + similarArr.length + " genres to genre " + genre.title_ru);
                 genre.setSimilar(similarArr).success(function (similarGenres) {
-                    //do nothing, updated
+                    callback(similarGenres);
                 });
             }
         });
-    }
+    };
 
     app.get("/api/setgenres", function (request, response) {
         var f = new Frontend(app);
         f._addGenres();
-    });
+        setTimeout(
+            function () {
+                /*f._setSimilar(function(){
+                 response.send("OK");
+                 });*/
 
-    app.get("/api/setsimilargenres", function (request, response) {
-        var f = new Frontend(app);
-        f._setSimilar();
+                response.send("OK");
+            }, 1000);
     });
 
 }

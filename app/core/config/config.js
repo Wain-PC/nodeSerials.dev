@@ -5,7 +5,8 @@ module.exports =
         host: 'localhost',
         login: 'root',
         password: '',
-        forceClearOnStart: false
+        forceClearOnStart: false,
+        logging: true
     },
     http: {
         userAgent: {

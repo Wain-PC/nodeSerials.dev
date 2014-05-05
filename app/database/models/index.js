@@ -10,7 +10,7 @@ var credits = {
 
 // initialize database connection
 var connectionString = 'mysql://' + credits.user + ':' + credits.password + '@' + credits.host + '/' + credits.database;
-var sequelize = new Sequelize(connectionString, {logging: false});
+var sequelize = new Sequelize(connectionString, {logging: (!!config.database.logging)});
 
 
 // load models from the following list
@@ -32,8 +32,10 @@ models.forEach(function (model) {
 // describe relationships between models
 (function (m) {
 
-    m.Series.hasMany(m.Genre);
-    m.Genre.hasMany(m.Series);
+    m.Series.hasMany(m.Genre, { as: 'Genres', through: 'SeriesGenres'});
+    m.Genre.hasMany(m.Series, { as: 'Ser', through: 'SeriesGenres'});
+
+
     m.Genre.hasMany(m.Genre, {as: 'Similar', through: 'SimilarGenre'});
 
     m.Series.hasMany(m.Person, { as: 'Person', through: 'SeriesPeople'});

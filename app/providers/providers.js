@@ -145,6 +145,7 @@ function getVideoLink(request, url, callback) {
                 console.log(resJSON);
                 resJSON = JSON.parse(resJSON);
                 result_url = resJSON.manifest_m3u8;
+                result_url = result_url.substr(7);
                 if (callback) callback(result_url);
             });
 

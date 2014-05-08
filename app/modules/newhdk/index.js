@@ -36,7 +36,7 @@ module.exports = function (app) {
             }
 
             //render page with Jade
-            RES.render('genreList', {dataArray: data});
+            RES.render('HDKmainPage', {dataArray: data});
 
             //disregard that, just output plain json
             //RES.json({"rootArray": data});

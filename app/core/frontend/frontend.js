@@ -28,6 +28,7 @@ module.exports = function (app) {
                 if (!directURL) response.send(404);
                 else response.send(directURL);
             });
+
         }
         catch (e) {
             console.log("Error while getting direct URL for video " + url + " " + e);

@@ -383,6 +383,7 @@ Series.prototype.saveSeries = function (callback) {
                                         //got video
                                         mVideo = ModelVideo.findOrCreate({
                                             url: _this.season[seasonNumber].episode[episodeNumber].video[k].url,
+                                            type: _this.season[seasonNumber].episode[episodeNumber].video[k].type,
                                             EpisodeId: episode.id
                                         }, { transaction: t }).success(function (video) {
                                                 //update only title of the video. Type should have been already set by this moment

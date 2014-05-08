@@ -53,6 +53,7 @@ models.forEach(function (model) {
     m.Episode.hasMany(m.Video, {as: 'Video'});
     m.Video.belongsTo(m.Episode, {as: 'Episode'});
 
+
 })(module.exports);
 
 //sync database

@@ -55,7 +55,7 @@ Queue.prototype.startDynamicRequestExecution = function() {
 Queue.prototype.stopDynamicRequestExecution = function() {
     //I assume it's impossible to check correct execution of the code below.
     //This method is extremely prone to error
-    var t = this.rrxIntervalHandler;
+    var t = this.rrx.intervalHandler;
     clearInterval(t);
     return true;
 };

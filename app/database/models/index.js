@@ -15,17 +15,19 @@ var sequelize = new Sequelize(connectionString, {logging: (!!config.database.log
 
 // load models from the following list
 var models = [
-    'series',
-    'season',
-    'episode',
-    'video',
-    'user',
-    'poster',
-    'genre',
-    'person',
-    'queue'
+    'Series',
+    'Season',
+    'Episode',
+    'Video',
+    'User',
+    'Poster',
+    'Genre',
+    'Person',
+    'Queue'
 ];
 models.forEach(function (model) {
+    //linux filename fix
+    model = model.charAt(0).toUpperCase() + model.slice(1);
     module.exports[model] = sequelize.import(__dirname + '/' + model);
 });
 

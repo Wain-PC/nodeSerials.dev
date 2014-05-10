@@ -15,15 +15,15 @@ var sequelize = new Sequelize(connectionString, {logging: (!!config.database.log
 
 // load models from the following list
 var models = [
-    'Series',
-    'Season',
-    'Episode',
-    'Video',
-    'User',
-    'Poster',
-    'Genre',
-    'Person',
-    'Queue'
+    'series',
+    'season',
+    'episode',
+    'video',
+    'user',
+    'poster',
+    'genre',
+    'person',
+    'queue'
 ];
 models.forEach(function (model) {
     module.exports[model] = sequelize.import(__dirname + '/' + model);

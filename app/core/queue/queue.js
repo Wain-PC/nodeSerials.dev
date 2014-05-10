@@ -9,6 +9,8 @@ var Queue = function (app) {
     this.queue = app.get("models");
     this.queue = this.queue.Queue;
 
+    this.pullInAction = false; //flag as a possible fix to the major app bug
+
     this.status = {
         new: 'new',
         sent: 'sent'
@@ -82,6 +84,15 @@ Queue.prototype.push = function (obj, callback) {
 //pull the first item of the queue
 Queue.prototype.pull = function (callback) {
     var _this = this;
+    //skip pull if another pull instance is currently active
+    if(_this.pullInAction) {
+        console.log("Some other PULL operation is currently active. Pull aborted!");
+        callback({});
+        return false;
+    }
+    //enable the flag
+    _this.pullInAction = true;
+
     this.queue.find(
         {
             where: {status: _this.status.new},
@@ -93,6 +104,7 @@ Queue.prototype.pull = function (callback) {
             //if it exists, ofk
             if (!item) {
                 callback({});
+                _this.pullInAction = false;
                 return false;
             }
             item.status = _this.status.sent;
@@ -101,6 +113,7 @@ Queue.prototype.pull = function (callback) {
                 //get the params back to object from string
                 item.params = JSON.parse(item.params);
                 callback(item);
+                _this.pullInAction = false;
             });
         })
 };

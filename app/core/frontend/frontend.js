@@ -188,7 +188,6 @@ module.exports = function (app) {
             }
             // ,{ raw: true } //speedUP!
         ).success(function (series) {
-                console.log(series.values);
                 if (!series || series.length == 0) {
                     callback(null);
                     return false;
@@ -297,7 +296,6 @@ module.exports = function (app) {
                 id: id
             }
         }).success(function (genre) {
-                console.log(genre.values);
                 if (!genre) {
                     callback([]);
                     return false;

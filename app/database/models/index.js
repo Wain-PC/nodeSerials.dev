@@ -28,7 +28,8 @@ var models = [
 models.forEach(function (model) {
     //linux filename fix
     model = model.charAt(0).toLowerCase() + model.slice(1);
-    module.exports[model] = sequelize.import(__dirname + '/' + model);
+    var modelFilename = model.charAt(0).toLowerCase() + model.slice(1);
+    module.exports[model] = sequelize.import(__dirname + '/' + modelFilename);
 });
 
 // describe relationships between models

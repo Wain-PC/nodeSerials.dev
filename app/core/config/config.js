@@ -1,12 +1,16 @@
 module.exports =
 {
     database: {
-        name: 'nodeserials',
+        name: 'admin_octopus',
+        host: '173.44.34.162',
+        login: 'admin_root',
+        password: 'SghZcP88CM',
+        /*name: 'nodeserials',
         host: 'localhost',
         login: 'root',
-        password: '',
+        password: '',*/
         forceClearOnStart: false,
-        logging: true
+        logging: false
     },
     http: {
         userAgent: {
@@ -28,7 +32,7 @@ module.exports =
     rrx: {
         startWithApp: false,
         timeout: {
-            checkQueue: 10,
+            checkQueue: 5,
             noRemoteDevices: 10,
             remoteDeviceResponse: 30
         }

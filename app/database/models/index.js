@@ -27,7 +27,7 @@ var models = [
 ];
 models.forEach(function (model) {
     //linux filename fix
-    model = model.charAt(0).toUpperCase() + model.slice(1);
+    model = model.charAt(0).toLowerCase() + model.slice(1);
     module.exports[model] = sequelize.import(__dirname + '/' + model);
 });
 

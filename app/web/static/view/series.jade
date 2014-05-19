@@ -1,0 +1,55 @@
+extends template
+block content
+    .row-fluid
+        .span3
+            -if(dataArray.poster.length >0)
+                img(src=dataArray.poster[0].url)
+            -else
+                img(src="/img/no_poster.jpg")
+        .span9
+            =dataArray.description
+
+    .row-fluid
+        .span12
+            -if(dataArray.genres.length >0)
+                h3 Жанры
+                    for g in dataArray.genres
+                        p
+                            a(href="/genre/"+g.id) #{g.title_ru}
+
+
+    for s in dataArray.season
+        p(id="season"+s.values.number)
+            h3= 'Сезон ' + s.values.number
+                for episode in s.episode
+                    p
+                        a(href=episode.video[0].values.url)
+                            -if(episode.thumbnail) {
+                                img(src=episode.thumbnail, width="200px", height="100px")
+                            -}
+                            =" "+episode.values.title +' ('+ episode.values.number +')'
+
+
+block menu
+    ul.nav.nav-tabs.nav-stacked.primary
+        for s in dataArray.season
+            li
+                a(href="#season"+s.values.number) Сезон #{s.values.number}
+
+block submenu
+    -if(dataArray.imdbid != 0) {
+        a(href="http://imdb.com/title/tt"+dataArray.imdbid)
+            img(src="/img/icon_imdb.png")
+    -}
+    -if(dataArray.kpid != 0) {
+        a(href="http://www.kinopoisk.ru/film/"+dataArray.kpid)
+            img(src="/img/icon_kp.png")
+    -}
+    -if(dataArray.thetvdbid != 0) {
+        a(href="http://thetvdb.com/?tab=series&id="+dataArray.thetvdbid)
+            img(src="/img/icon_thetvdb.png")
+    -}
+    -if(dataArray.tvrageid != 0) {
+        a(href="http://www.tvrage.com/shows/id-"+dataArray.tvrageid)
+            img(src="/img/icon_tvrage.png")
+    -}

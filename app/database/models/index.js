@@ -29,14 +29,14 @@ models.forEach(function (model) {
     //linux filename fix
     var modelFilename = model.charAt(0).toLowerCase() + model.slice(1);
     module.exports[model] = sequelize.import(__dirname + '/' + modelFilename);
-    console.log("Exporting "+model+ " from "+__dirname + '/' + modelFilename);
+    console.log("Exporting " + model + " from " + __dirname + '/' + modelFilename);
 });
 
 // describe relationships between models
 (function (m) {
 
     m.Series.hasMany(m.Genre, { as: 'Genres', through: 'SeriesGenres'});
-    m.Genre.hasMany(m.Series, { as: 'Ser', through: 'SeriesGenres'});
+    m.Genre.hasMany(m.Series, { as: 'Series', through: 'SeriesGenres'});
 
 
     m.Genre.hasMany(m.Genre, {as: 'Similar', through: 'SimilarGenre'});

@@ -1,16 +1,21 @@
 var express = require('express');
 var app = express();
 
+//use static content
+app.use(express.static(__dirname + '/web/static'));
 
 //jade enable
-app.set('views', __dirname + '/views');
+app.set('views', __dirname + '/web/static/view');
 app.set('view engine', 'jade');
 
 
 //use logger in development mode
-//app.use(express.logger('dev'));
+app.use(express.logger('dev'));
 //use router
 app.use(app.router);
+//content compression
+app.use(express.compress());
+
 
 //db connection and models
 app.set('models', require('./database/models'));
@@ -23,12 +28,13 @@ var Q = require('./core/queue');
 Q = new Q(app);
 Q.setMaxListeners(100);
 if (app.get('config').rrx.startWithApp) Q.startDynamicRequestExecution();
-
 app.set('queue', Q);
 
 //routing
 require('./routes.js')(app);
-require('./core/frontend')(app);
+
+//enable external API
+var api = require('./web/api')(app);
 
 //after all, handle 404 error
 console.log("404 listener add");

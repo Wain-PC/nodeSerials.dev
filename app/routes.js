@@ -28,15 +28,11 @@ module.exports = function (app) {
     });
 
     //add frontend as well
-    modulesList.push('api/latest');
+    modulesList.push('/latest');
 
     app.get("/", function (request, response) {
         console.log(JSON.stringify(modulesList));
-        response.render('mainPage', {dataArray: modulesList});
-    });
-
-    app.get("/frontend", function (request, response) {
-        require('./core/frontend')(app);
+        response.render('index', {dataArray: modulesList});
     });
 
 };

@@ -1,0 +1,57 @@
+doctype html
+html
+    head
+        -var title = "Все сериалы в одном месте!";
+            -if(dataArray) {
+            -if(dataArray.title_en) title = dataArray.title_en;
+            -if(dataArray.title_ru) title = dataArray.title_ru;
+            -if(dataArray.title) title = dataArray.title;
+            -}
+
+        title #{title} - Octopus
+        | <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        | <meta name="description" content="An HTTP &amp; SPDY client for Android and Java applications">
+        link(rel='stylesheet', href='/css/bootstrap-combined.min.css')
+        link(rel='stylesheet', href='/css/app.css')
+        link(rel='stylesheet', href='/css/app-theme.css')
+        link(rel='stylesheet', href='http://fonts.googleapis.com/css?family=Roboto:400,300italic,100,100italic,300&subset=latin,cyrillic-ext')
+        script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js')
+        script(src='/js/bootstrap.min.js')
+        script(src='/js/jquery.smooth-scroll.min.js')
+        script(src='/js/jquery-maven-artifact.min.js')
+        script(src='/js/prettify.js')
+        script(src='/js/onPageLoad.js')
+    body(data-target=".content-nav")
+        header
+            .container
+                .row
+                    .span6
+                        a#header(href="/")
+                            h1 Octopus (beta)
+                    .span6
+                        menu
+                            ul
+                                li
+                                    a(href="/latest") Новые
+                                li
+                                    a(href="/genres") Жанры
+                                li
+                                    a.menu.github(href="http://github.com/Wain-PC/nodeSerials.dev", data-title="Github")
+                                        img(src="/img/icon-github.png", alt="Github")
+        section#subtitle
+            .container
+                .row
+                    .span4
+                        h2 #{title}
+                    .span8.submenu
+                        block submenu
+        section#body
+            .container
+                .row
+                    .span12
+                        h3
+                        block content
+
+
+
+

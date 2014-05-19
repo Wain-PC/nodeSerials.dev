@@ -1,0 +1,4 @@
+{
+    "name": "nodeserials-web-api",
+    "main": "./api.js"
+}

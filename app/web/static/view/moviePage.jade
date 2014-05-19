@@ -1,5 +1,5 @@
 extends template
-block common-categories
+block content
     for item in dataArray
         p
             a(href='get/'+item.url+'?replacer='+replacer)= item.title

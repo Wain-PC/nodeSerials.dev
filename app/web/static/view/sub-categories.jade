@@ -6,7 +6,7 @@
    To change this template use File | Settings | File Templates.
 
 extends template
-block common-categories
+block content
     for item in dataArray
         p
-            a(href='list/'+item.id)= item.title_ru
+            a(href='../sublist/'+item.id)= item.title_ru

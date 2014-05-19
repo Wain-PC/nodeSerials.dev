@@ -6,9 +6,9 @@ module.exports =
         login: 'admin_root',
         password: 'SghZcP88CM',
         /*name: 'nodeserials',
-        host: 'localhost',
-        login: 'root',
-        password: '',*/
+         host: 'localhost',
+         login: 'root',
+         password: '',*/
         forceClearOnStart: false,
         logging: false
     },
@@ -34,7 +34,8 @@ module.exports =
         timeout: {
             checkQueue: 5,
             noRemoteDevices: 10,
-            remoteDeviceResponse: 30
+            remoteDeviceResponse: 30,
+            restartQueueIterations: 10
         }
     }
 };

@@ -75,6 +75,10 @@ header menu li a img {
     width: 100%;
 }
 
+#body {
+    margin-top: 80px;
+}
+
 h2 {
     font-weight: 200;
     font-size: 26px;
@@ -132,7 +136,7 @@ h3 {
     font-style: italic;
     color: #888;
     font-size: 20px;
-    padding-top: 115px;
+    padding-top: 80px;
     margin-top: 0;
 }
 

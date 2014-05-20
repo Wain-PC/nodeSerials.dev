@@ -1,0 +1,5 @@
+extends template
+block content
+    for item in dataArray.series
+        p
+            a(href='/series/'+item.id)= item.title_ru

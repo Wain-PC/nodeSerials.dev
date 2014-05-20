@@ -9,6 +9,7 @@ html
             -}
 
         title #{title} - Octopus
+        meta(charset="utf-8")
         | <meta name="viewport" content="width=device-width, initial-scale=1.0">
         | <meta name="description" content="An HTTP &amp; SPDY client for Android and Java applications">
         link(rel='stylesheet', href='/css/bootstrap-combined.min.css')
@@ -32,6 +33,9 @@ html
                         menu
                             ul
                                 li
+                                    form.form-search.form-inline(action="/search", method="get")
+                                        input.input-medium.search-query(name="q", type="text", placeholder="Поиск")
+                                li
                                     a(href="/latest") Новые
                                 li
                                     a(href="/genres") Жанры
@@ -52,7 +56,7 @@ html
                         h3
                         block content
                     .span3
-                        .content-nav(data-spy="affix",data-offset-top="80")
+                        .content-nav(data-spy="affix",data-offset-top="160")
                             block menu
 
 

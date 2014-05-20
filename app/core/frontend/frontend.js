@@ -44,6 +44,17 @@ Frontend.prototype.findSeriesByName = function (name, callback) {
 };
 
 
+Frontend.prototype.findPeopleByName = function (name, callback) {
+    var People = this.model.Person;
+
+    People.findAndCountAll({
+        where: ["name_ru LIKE ?", '%' + name + '%']
+    }).success(function (result) {
+            callback(result.rows);
+        });
+};
+
+
 //-----------Search API END
 
 
@@ -51,7 +62,7 @@ Frontend.prototype.findSeriesByName = function (name, callback) {
 
 Frontend.prototype.getSeriesById = function (id, callback) {
 
-    this.model.Series.findAll({
+    this.model.Series.find({
             where: {
                 id: id
             },
@@ -68,6 +79,8 @@ Frontend.prototype.getSeriesById = function (id, callback) {
                 {model: this.model.Poster, as: 'Poster'}
                 ,
                 {model: this.model.Genre, as: 'Genres'}
+                //,   //model disabled as being WAY TOO HEAVY on load time
+                //{model: this.model.Person, as: 'Person'}
             ], order: [
                 [
                     {model: this.model.Season, as: 'Season'},
@@ -81,13 +94,14 @@ Frontend.prototype.getSeriesById = function (id, callback) {
             ]
 
         }
-        // ,{ raw: true } //speedUP!
+        //,{ raw: true } //speedUP!
     ).success(function (series) {
+            console.log("Series raw:" + JSON.stringify(series));
             if (!series || series.length == 0) {
                 callback(null);
                 return false;
             }
-            callback(series[0].values);
+            callback(series);
         });
 };
 
@@ -95,14 +109,16 @@ Frontend.prototype.getSeriesById = function (id, callback) {
 Frontend.prototype.getLatestSeries = function (limit, callback) {
     var Series = this.model.Series;
     var res = [];
-    Series.findAndCountAll({
-        order: 'updatedAt DESC',
+    Series.findAll({
         limit: limit,
+        order: [
+            ['updatedAt', 'DESC']
+        ],
         include: [
             {model: this.model.Poster, as: 'Poster'}
         ]
     }).success(function (result) {
-            callback(result.rows);
+            callback(result);
         });
 };
 
@@ -144,6 +160,26 @@ Frontend.prototype.getGenreSeriesById = function (id, number, offset, callback) 
 
 
 //-----------Common API END
+
+
+//-----------People API
+Frontend.prototype.getPersonSeries = function (id, callback) {
+    var People = this.model.Person;
+
+    People.find({
+        where: {
+            id: id
+        },
+        include: [
+            {model: this.model.Series, as: 'Series'}
+        ]
+
+    }).success(function (result) {
+            callback(result);
+        });
+};
+
+//-----------End People API
 
 //---------------------------
 //these are one-time methods for DB instantiation with data

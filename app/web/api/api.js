@@ -146,7 +146,7 @@ module.exports = function (app) {
     app.get("/search", function (request, response) {
         var query = decodeURIComponent(request.query.q);
         f.findSeriesByName(query, function (res) {
-            show(response, res, 'seriesList');
+            show(request, response, {title: "Поиск:" + query, series: res}, 'search');
         });
     });
 //-----------End search API
@@ -184,13 +184,11 @@ module.exports = function (app) {
 
     app.get("/genre/:id", function (request, response) {
         var id = request.params.id;
-        var jsonOutput = (request.query.json == 1);
         if (!id) {
             showError(request, response, 404);
             return false;
         }
         f.getGenreSeriesById(id, 100, 0, function (res) {
-
             show(request, response, res, 'seriesList');
         });
     });
@@ -210,6 +208,23 @@ module.exports = function (app) {
 
 
 //------------End Genres API
+
+
+//------------People API
+
+    app.get("/people/:id", function (request, response) {
+        var id = request.params.id;
+        if (!id) {
+            showError(request, response, 404);
+            return false;
+        }
+        f.getPersonSeries(id, function (res) {
+            show(request, response, res, 'person');
+        });
+    });
+
+
+//------------End People API
 
 }
 

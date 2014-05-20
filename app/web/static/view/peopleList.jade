@@ -1,0 +1,5 @@
+extends template
+block content
+    for item in dataArray
+        p
+            a(href='/person/'+item.id)= item.name_ru

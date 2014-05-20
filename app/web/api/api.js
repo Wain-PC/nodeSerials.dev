@@ -146,7 +146,7 @@ module.exports = function (app) {
     app.get("/search", function (request, response) {
         var query = decodeURIComponent(request.query.q);
         var mode = request.query.mode;
-        if (!mode || mode == "s") {
+        if (mode == "s") {
             f.findSeriesByName(query, function (res) {
                 if (res.length > 0) {
                     show(request, response, {title: "Поиск: " + query, series: res}, 'search');
@@ -166,11 +166,29 @@ module.exports = function (app) {
                 }
             });
         }
+        else {
+            f.findSeriesByName(query, function (resSeries) {
+                f.findPeopleByName(query, function (resPeople) {
+                    if ((resPeople.length > 0) || (resSeries.length > 0)) {
+                        show(request, response, {title: "Поиск: " + query, series: resSeries, people: resPeople}, 'search');
+                    }
+                    else {
+                        showError(request, response, 404);
+                    }
+                });
+            });
+        }
     });
 //-----------End search API
 
 
 //-----------Common API
+
+    app.get("/", function (request, response) {
+        f.getLatestSeries(100, function (res) {
+            show(request, response, res, 'index');
+        });
+    });
 
     app.get("/series/:id", function (request, response) {
         var id = request.params.id;

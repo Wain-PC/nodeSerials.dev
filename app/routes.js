@@ -30,7 +30,7 @@ module.exports = function (app) {
     //add frontend as well
     modulesList.push('/latest');
 
-    app.get("/", function (request, response) {
+    app.get("/modules", function (request, response) {
         console.log(JSON.stringify(modulesList));
         response.render('index', {dataArray: modulesList});
     });

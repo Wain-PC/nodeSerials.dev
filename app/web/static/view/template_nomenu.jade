@@ -33,6 +33,9 @@ html
                         menu
                             ul
                                 li
+                                    form.form-search.form-inline(action="/search", method="get")
+                                        input.input-medium.search-query(name="q", type="text", placeholder="Поиск")
+                                li
                                     a(href="/latest") Новые
                                 li
                                     a(href="/genres") Жанры

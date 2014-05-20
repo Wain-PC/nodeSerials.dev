@@ -25,7 +25,7 @@ block content
                     p
                         a(href=episode.video[0].values.url)
                             -if(episode.thumbnail) {
-                                img(src=episode.thumbnail, width="200px", height="100px")
+                                img.img_200px(src=episode.thumbnail)
                             -}
                             =" "+episode.values.title +' ('+ episode.values.number +')'
 

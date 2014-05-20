@@ -26,6 +26,18 @@ a.dl {
     margin-right: 10px;
 }
 
+.img_50px {
+    width: 50px;
+}
+
+.img_100px {
+    width: 100px;
+}
+
+.img_200px {
+    height: 200px;
+}
+
 .content-nav li.active a,
 .content-nav li.active a:hover {
     border-left-color: #48b7b9;

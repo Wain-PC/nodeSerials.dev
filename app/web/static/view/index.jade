@@ -1,5 +1,15 @@
-extends template
+extends template_nomenu
 block content
+    -var counter = -1;
     for item in dataArray
-        p
-            a(href=item)= item
+        -counter++
+        -if(counter%4 == 0)
+            .row-fluid
+                for item2 in dataArray.slice(counter, counter+4)
+                    .span3
+                        -var poster = "/img/no_poster.jpg";
+                        -if(item2.poster.length >0)
+                            -poster=item2.poster[0].url
+                        a(href='/series/'+item2.id)
+                            img.media-object.img_200px(src=poster)
+                            h4.media-heading #{item2.title_ru}

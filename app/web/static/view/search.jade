@@ -1,12 +1,12 @@
 extends template
 block content
-    -if(dataArray.series) {
+    -if((dataArray.series) && (dataArray.series.length > 0)) {
         h3#series Сериалы
         for item in dataArray.series
             p
                 a(href='/series/'+item.id)= item.title_ru
     -}
-    -if(dataArray.people) {
+    -if((dataArray.people) && (dataArray.people.length > 0)) {
         h3#people Люди
         for item in dataArray.people
             p

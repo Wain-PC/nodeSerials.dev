@@ -1,12 +1,17 @@
 extends template
 block content
-    h3#series Сериалы
-    for item in dataArray.series
-        p
-            a(href='/series/'+item.id)= item.title_ru
-
-    h3#people Люди
-
+    -if(dataArray.series) {
+        h3#series Сериалы
+        for item in dataArray.series
+            p
+                a(href='/series/'+item.id)= item.title_ru
+    -}
+    -if(dataArray.people) {
+        h3#people Люди
+        for item in dataArray.people
+            p
+                a(href='/people/'+item.id)= item.name_ru
+    -}
 block menu
     ul.nav.nav-tabs.nav-stacked.primary
         li

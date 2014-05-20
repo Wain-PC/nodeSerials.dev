@@ -145,9 +145,27 @@ module.exports = function (app) {
 //-----------Search API
     app.get("/search", function (request, response) {
         var query = decodeURIComponent(request.query.q);
-        f.findSeriesByName(query, function (res) {
-            show(request, response, {title: "Поиск:" + query, series: res}, 'search');
-        });
+        var mode = request.query.mode;
+        if (!mode || mode == "s") {
+            f.findSeriesByName(query, function (res) {
+                if (res.length > 0) {
+                    show(request, response, {title: "Поиск: " + query, series: res}, 'search');
+                }
+                else {
+                    showError(request, response, 404);
+                }
+            });
+        }
+        else if (mode == "p") {
+            f.findPeopleByName(query, function (res) {
+                if (res.length > 0) {
+                    show(request, response, {title: "Поиск: " + query, people: res}, 'search');
+                }
+                else {
+                    showError(request, response, 404);
+                }
+            });
+        }
     });
 //-----------End search API
 
@@ -219,7 +237,7 @@ module.exports = function (app) {
             return false;
         }
         f.getPersonSeries(id, function (res) {
-            show(request, response, res, 'person');
+            show(request, response, {title: res.name_ru, series: res.series}, 'person');
         });
     });
 

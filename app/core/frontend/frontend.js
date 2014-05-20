@@ -96,7 +96,6 @@ Frontend.prototype.getSeriesById = function (id, callback) {
         }
         //,{ raw: true } //speedUP!
     ).success(function (series) {
-            console.log("Series raw:" + JSON.stringify(series));
             if (!series || series.length == 0) {
                 callback(null);
                 return false;

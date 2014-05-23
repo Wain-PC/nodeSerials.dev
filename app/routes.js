@@ -32,7 +32,7 @@ module.exports = function (app) {
 
     app.get("/modules", function (request, response) {
         console.log(JSON.stringify(modulesList));
-        response.render('index', {dataArray: modulesList});
+        response.render('modules', {dataArray: {title: "Модули (dev)", list: modulesList}});
     });
 
 };

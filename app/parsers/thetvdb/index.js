@@ -236,17 +236,17 @@ function TheTvDbParser(app, key) {
             episodeNumber = tvdbEpisode.EpisodeNumber;
             //season actually exists (site has some videos)
             if (!series.season[seasonNumber]) {
-                console.log("No such episode:" + seasonNumber + "x" + episodeNumber);
+                //console.log("No such episode:" + seasonNumber + "x" + episodeNumber);
                 continue;
             }
             episode = series.season[seasonNumber].episode[episodeNumber];
 
             if (!episode) {
-                console.log("NO episode for season " + seasonNumber + " ep:" + episodeNumber);
+                //console.log("NO episode for season " + seasonNumber + " ep:" + episodeNumber);
                 continue;
             }
 
-            console.log("Updating info for season " + seasonNumber + " ep:" + episodeNumber + " : " + tvdbEpisode.EpisodeName);
+            //console.log("Updating info for season " + seasonNumber + " ep:" + episodeNumber + " : " + tvdbEpisode.EpisodeName);
             if (is.string(tvdbEpisode.EpisodeName)) episode.title = tvdbEpisode.EpisodeName;
             if (is.string(tvdbEpisode.Overview)) episode.description = tvdbEpisode.Overview;
             if (is.imageURL(baseImageURL + tvdbEpisode.filename)) {

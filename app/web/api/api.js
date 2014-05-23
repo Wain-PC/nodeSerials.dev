@@ -51,7 +51,7 @@ module.exports = function (app) {
             );
         }
         else {
-            response.send(errCode);
+            response.send(404);
         }
     };
 
@@ -203,7 +203,7 @@ module.exports = function (app) {
 
     app.get("/latest", function (request, response) {
         f.getLatestSeries(100, function (res) {
-            show(request, response, res, 'seriesList');
+            show(request, response, {title: "Последние добавленные", list: res}, 'list');
         });
     });
 
@@ -214,7 +214,7 @@ module.exports = function (app) {
 
     app.get("/genres", function (request, response) {
         f.getGenres(function (res) {
-            show(request, response, res, 'genreList');
+            show(request, response, {title: "Список жанров", genres: res}, 'genreList');
         });
     });
 
@@ -225,7 +225,11 @@ module.exports = function (app) {
             return false;
         }
         f.getGenreSeriesById(id, 100, 0, function (res) {
-            show(request, response, res, 'seriesList');
+            if (!res.series || res.series.length == 0) {
+                showError(request, response, "empty_list");
+                return;
+            }
+            show(request, response, {title: "Жанр: " + res.genre.title_ru, list: res.series}, 'list');
         });
     });
 

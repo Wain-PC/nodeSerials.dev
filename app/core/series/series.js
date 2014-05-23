@@ -196,6 +196,37 @@ Series.prototype.addShow = function (callback) {
         return false;
     }
 
+    //check whether the titles are OK
+    var tempTitle = "";
+    var is = require('../../util/is');
+    if (is.string(_this.title_ru) && !is.russian(_this.title_ru)) {
+        //most probably, this is EN title
+        //check if the en title actually exists
+        if (is.string(_this.title_en)) {
+            console.log("TEN:" + is.string(_this.title_en));
+            if (is.russian(_this.title_en)) {
+                //okay, this is definitely a swap, perform it
+                console.log("Wrong title order, performing a swap!");
+                tempTitle = _this.title_en;
+                _this.title_en = _this.title_ru;
+                _this.title_ru = tempTitle;
+            }
+            else {
+                //shit, this is not russian
+                //remove title_ru as misspelled
+                _this.title_ru = "";
+                console.log("Title_ru disintergated for being EN!");
+            }
+        }
+        else {
+            //no EN title, we should move RU title to EN, and remove the former
+            _this.title_en = _this.title_ru;
+            _this.title_ru = "";
+            console.log("Moving RU title to EN!");
+        }
+    }
+
+
     var CONFIG = require('../../core/config');
     var GOOGLE = require("../../parsers/google")
     var googleParser = new GOOGLE(_this.getApp());
@@ -203,6 +234,7 @@ Series.prototype.addShow = function (callback) {
     var myShowsParser = new MS(_this.getApp());
     var TVDB = require("../../parsers/thetvdb");
     var theTvDbParser = new TVDB(_this.getApp(), CONFIG.parsers.thetvdb.api_key);
+
 
     googleParser.show.searchForShow(this, function (obj) {
         myShowsParser.show.searchForShow(_this, function (obj) {

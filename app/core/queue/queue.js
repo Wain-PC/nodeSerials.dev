@@ -23,38 +23,38 @@ Queue.prototype = new EVENTS.EventEmitter;
 
 //this is a VERY EARLY prototype of what it should be
 //it doesn't actually do any 'send-to-device' stuff
-Queue.prototype.remoteRequestExecutor = function() {
+Queue.prototype.remoteRequestExecutor = function () {
     var _this = this;
     var Request = require('../../util/request');
 
-    _this.pull(function(item) {
-        if(!item.id) {
-            console.log("Seems like empty queue, RRX aborted.");
+    _this.pull(function (item) {
+        if (!item.id) {
+            //console.log("Seems like empty queue, RRX aborted.");
             return false;
         }
 
         var request = new Request(_this.app, item.userAgent, item.type);
-        console.log("----------RRX working for request "+item.requestId);
-        request.makeRequest(item.url,item.params, function(error,response,body) {
-            console.log("Emit done for request "+item.requestId);
-            _this.emit('done',item.requestId,error,response,body);
+        console.log("----------RRX working for request " + item.requestId);
+        request.makeRequest(item.url, item.params, function (error, response, body) {
+            console.log("Emit done for request " + item.requestId);
+            _this.emit('done', item.requestId, error, response, body);
         });
     });
 
 };
 
 
-Queue.prototype.startDynamicRequestExecution = function() {
+Queue.prototype.startDynamicRequestExecution = function () {
     var cqTimeout = this.rrx.timeout.checkQueue;
     var _this = this;
-    console.log("RRX started! Interval is set to %d sec",cqTimeout);
-    this.rrx.intervalHandler = setInterval(function() {
+    console.log("RRX started! Interval is set to %d sec", cqTimeout);
+    this.rrx.intervalHandler = setInterval(function () {
         _this.remoteRequestExecutor();
-    },cqTimeout*1000);
+    }, cqTimeout * 1000);
 };
 
 
-Queue.prototype.stopDynamicRequestExecution = function() {
+Queue.prototype.stopDynamicRequestExecution = function () {
     //I assume it's impossible to check correct execution of the code below.
     //This method is extremely prone to error
     var t = this.rrx.intervalHandler;
@@ -85,7 +85,7 @@ Queue.prototype.push = function (obj, callback) {
 Queue.prototype.pull = function (callback) {
     var _this = this;
     //skip pull if another pull instance is currently active
-    if(_this.pullInAction) {
+    if (_this.pullInAction) {
         console.log("Some other PULL operation is currently active. Pull aborted!");
         callback({});
         return false;
@@ -119,14 +119,14 @@ Queue.prototype.pull = function (callback) {
 };
 
 //currently, returned answers aren't really detailed. Probably, should return object with error descriptions?
-Queue.prototype.rrxResponseReceived = function(query) {
+Queue.prototype.rrxResponseReceived = function (query) {
     var status = {
-        ok: 'ok',
-        fail: 'fail'
+            ok: 'ok',
+            fail: 'fail'
         },
         _this = this;
 
-    if(!query) return status.fail;
+    if (!query) return status.fail;
 
     try {
         //should we check requestId for presence in our DB?
@@ -136,7 +136,7 @@ Queue.prototype.rrxResponseReceived = function(query) {
             statusCode: query.response.statusCode
         };
 
-        _this.emit('done',query.requestId,false,response,query.body);
+        _this.emit('done', query.requestId, false, response, query.body);
         return status.ok;
 
     }

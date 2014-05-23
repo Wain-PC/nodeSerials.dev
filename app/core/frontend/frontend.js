@@ -150,7 +150,7 @@ Frontend.prototype.getGenreSeriesById = function (id, number, offset, callback) 
             genre.getSeries({
                 // include: [Poster] //SHIT DOESN'T WORK
             }).success(function (seriesArray) {
-                    callback(seriesArray);
+                    callback({series: seriesArray, genre: genre});
                     return true;
                 });
         });

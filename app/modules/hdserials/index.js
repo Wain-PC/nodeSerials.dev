@@ -20,8 +20,8 @@ module.exports = function (app) {
         RES = res;
         NEXT = next;
 
-        comdirHandler(1);  //series
-        //comdirHandler(3);  //animated series
+        //comdirHandler(1);  //series
+        comdirHandler(3);  //animated series
         //comdirHandler(5);  //tv shows
         //comdirHandler(6);  //anime
     }
@@ -66,7 +66,23 @@ module.exports = function (app) {
         };
 
         var request = new Request(app, USER_AGENT, 'GET');
-        request.makeDeferredRequest(BASE_URL, rqData, onsubDirRequestFinished);
+        request.makeDeferredRequest(BASE_URL, rqData, function (error, response, body) {
+            //check if we have more items
+            try {
+                var resJSON = JSON.parse(body);
+                //launch parsing protocols
+                onsubDirRequestFinished(resJSON);
+                if (resJSON.endOfData == false) {
+                    //launch subdirHandler for the next page
+                    console.log("HDS found more pages for id " + id + " going for page " + page + 1);
+                    subdirHandler(id, ++page);
+                }
+            }
+            catch (err) {
+                console.log("Error happenned within subdir: " + err);
+            }
+
+        });
     }
 
     function itemHandler(id, season) {
@@ -111,12 +127,8 @@ module.exports = function (app) {
 
     }
 
-    function onsubDirRequestFinished(error, response, body) {
+    function onsubDirRequestFinished(resJSON) {
         try {
-            var resJSON = JSON.parse(body);
-            //render it with JADE
-            //render the page with received view
-
 
             for (var i = 0; i < resJSON.data.length; i++) {
                 if (resJSON.data[i].season) {
@@ -239,9 +251,5 @@ module.exports = function (app) {
 
     //making paths
     app.get(PATH, start);
-    app.get(PATH + '/list/:id', comdirHandler);
-    app.get(PATH + '/sublist/:id', subdirHandler);
-    app.get(PATH + '/item/:id', itemHandler);
-    app.get(PATH + '/get', videoHandler);
 
 };

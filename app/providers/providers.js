@@ -187,7 +187,7 @@ function fixCORS(m3u8Url, request, callback) {
                     console.log("Error creating playlist file:" + err);
 
                 } else {
-                    var retUrl = 'http://nodeserials.dev:1337/cors/' + name + '.m3u8';
+                    var retUrl = 'http://octopustv.ru:1337/cors/' + name + '.m3u8';
                     //remove the file after some time
                     setTimeout(function () {
                         fs.unlink("./web/static/cors/" + name + ".m3u8", function (err) {

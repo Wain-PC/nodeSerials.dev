@@ -5,6 +5,7 @@ module.exports = function (app) {
     var Q = app.get('queue');
     var auth = require('../../core/authentication');
     var f = new Frontend(app);
+    var cors = require('cors');
 
 
     //--------API controller
@@ -58,7 +59,7 @@ module.exports = function (app) {
     //--------End API controller
 
     //--------Direct links provider API
-    app.get("/api/getdirectlink", function (request, response) {
+    app.get("/api/getdirectlink", cors(), function (request, response) {
         try {
             var url = decodeURIComponent(request.query.url);
             console.log("Getting direct link for " + url);
@@ -77,7 +78,7 @@ module.exports = function (app) {
     });
 
 
-    app.get("/api/getepisodedirectvideo", function (request, response) {
+    app.get("/api/getepisodedirectvideo", cors(), function (request, response) {
         try {
             var url = decodeURIComponent(request.query.url);
             console.log("Getting direct link for " + url);

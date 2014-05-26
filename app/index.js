@@ -1,7 +1,9 @@
 var express = require('express');
 var app = express();
+var cors = require('cors');
 
 //use static content
+app.use(cors());
 app.use(express.static(__dirname + '/web/static'));
 
 //jade enable

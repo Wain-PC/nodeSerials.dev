@@ -165,13 +165,15 @@ function fixCORS(m3u8Url, request, callback) {
     request.TYPE = 'GET'; //on-the-fly request type change.
     request.makeRequest(m3u8Url, false, function (err, resp, body) {
 
-
+        console.log("BODYY:" + body);
         var parser = M3U8.createStream();
         stream.pipe(parser);
 
         parser.on('item', function (item) {
-            var url = item.get('uri');
-            item.set('uri', 'http://corsproxy.com/' + url.substr(7));
+            /*console.log("ITEM:"+item.toString());
+             var url = item.get('uri');
+             console.log("URIIIII:"+url);
+             item.set('uri', 'http://corsproxy.com/' + url.substr(7));*/
         });
 
         parser.on('m3u', function (m3u) {
@@ -198,7 +200,7 @@ function fixCORS(m3u8Url, request, callback) {
                                 console.log("Unlink success for file " + name);
                             }
                         });
-                    }, 60000);
+                    }, 600000);
 
                     callback(retUrl);
                 }

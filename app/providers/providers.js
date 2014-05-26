@@ -144,7 +144,8 @@ function getVideoLink(request, url, callback) {
             request.makeRequest('http://moonwalk.cc/sessions/create_session', {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
                 resJSON = JSON.parse(resJSON);
                 result_url = resJSON.manifest_m3u8;
-                fixCORS(result_url, request, callback);
+                //fixCORS(result_url, request, callback);
+                if (callback) callback(result_url);
             });
 
 
@@ -165,7 +166,7 @@ function fixCORS(m3u8Url, request, callback) {
     request.TYPE = 'GET'; //on-the-fly request type change.
     request.makeRequest(m3u8Url, false, function (err, resp, body) {
 
-        console.log("BODYY:" + body);
+        console.log("BODYY:" + m3u8Url.substr(0, -10));
         var parser = M3U8.createStream();
         stream.pipe(parser);
 

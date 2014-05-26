@@ -142,11 +142,9 @@ function getVideoLink(request, url, callback) {
             var video_secret = /video_secret: '(.+?)'/.exec(v)[1];
             request.TYPE = 'POST'; //on-the-fly request type change. Pretty bad idea, by the way...
             request.makeRequest('http://moonwalk.cc/sessions/create_session', {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
-                console.log(resJSON);
                 resJSON = JSON.parse(resJSON);
                 result_url = resJSON.manifest_m3u8;
-                result_url = result_url.substr(7);
-                if (callback) callback(result_url);
+                fixCORS(result_url, request, callback);
             });
 
 
@@ -154,6 +152,65 @@ function getVideoLink(request, url, callback) {
         //end else
 
     });
+}
+
+function fixCORS(m3u8Url, request, callback) {
+    var M3U8 = require('m3u8');
+    var Stream = require('stream');
+    var stream = new Stream();
+    var fs = require('fs');
+    var crypto = require('crypto');
+
+    var file = fs.createReadStream('./web/static/index.m3u8');
+    request.TYPE = 'GET'; //on-the-fly request type change.
+    request.makeRequest(m3u8Url, false, function (err, resp, body) {
+
+
+        var parser = M3U8.createStream();
+        stream.pipe(parser);
+
+        parser.on('item', function (item) {
+            var url = item.get('uri');
+            item.set('uri', 'http://corsproxy.com/' + url.substr(7));
+        });
+
+        parser.on('m3u', function (m3u) {
+            //generating playlist hashname (should be pretty unique)
+            var sha = crypto.createHash('sha1');
+            var buf = crypto.pseudoRandomBytes(128);
+            sha.update(buf);
+            var name = sha.digest('hex');
+
+
+            fs.writeFile("./web/static/cors/" + name + ".m3u8", m3u.toString(), function (err) {
+                if (err) {
+                    console.log("Error creating playlist file:" + err);
+
+                } else {
+                    var retUrl = 'http://nodeserials.dev:1337/cors/' + name + '.m3u8';
+                    //remove the file after some time
+                    setTimeout(function () {
+                        fs.unlink("./web/static/cors/" + name + ".m3u8", function (err) {
+                            if (err) {
+                                console.log("Unlink error of file " + name + " :" + err);
+                            }
+                            else {
+                                console.log("Unlink success for file " + name);
+                            }
+                        });
+                    }, 60000);
+
+                    callback(retUrl);
+                }
+            })
+        });
+
+        stream.emit('data', body);
+        stream.emit('end');
+
+
+    });
+
 }
 
 module.exports = Providers;

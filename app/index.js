@@ -3,6 +3,9 @@ var app = express();
 var cors = require('cors');
 
 //use static content
+//content compression
+app.use(express.compress());
+
 app.use(cors());
 app.use(express.static(__dirname + '/web/static'));
 
@@ -15,8 +18,6 @@ app.set('view engine', 'jade');
 app.use(express.logger('dev'));
 //use router
 app.use(app.router);
-//content compression
-app.use(express.compress());
 
 
 //db connection and models

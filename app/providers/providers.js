@@ -144,8 +144,8 @@ function getVideoLink(request, url, callback) {
             request.makeRequest('http://moonwalk.cc/sessions/create_session', {video_token: video_token, video_secret: video_secret}, function (error, response, resJSON) {
                 resJSON = JSON.parse(resJSON);
                 result_url = resJSON.manifest_m3u8;
-                //fixCORS(result_url, request, callback);
-                if (callback) callback(result_url);
+                fixCORS(result_url, request, callback);
+                //if (callback) callback(result_url);
             });
 
 
@@ -166,15 +166,25 @@ function fixCORS(m3u8Url, request, callback) {
     request.TYPE = 'GET'; //on-the-fly request type change.
     request.makeRequest(m3u8Url, false, function (err, resp, body) {
 
-        console.log("BODYY:" + m3u8Url.substr(0, -10));
         var parser = M3U8.createStream();
         stream.pipe(parser);
 
         parser.on('item', function (item) {
-            /*console.log("ITEM:"+item.toString());
-             var url = item.get('uri');
-             console.log("URIIIII:"+url);
-             item.set('uri', 'http://corsproxy.com/' + url.substr(7));*/
+            console.log("ITEM:" + item.toString());
+            var url = item.get('uri');
+            var re = /^.*(tracks.*?m3u8)$/g;
+            var reFull = /^http:.*(tracks.*?m3u8)$/g;
+            var fullUrlFound = reFull.exec(url);
+            console.log("URIIIII FOUND:" + fullUrlFound);
+            if (fullUrlFound) {
+                item.set('uri', 'http://octopustv.ru:1234/' + url);
+            }
+            else {
+                //assume that it's short URL
+                //we must make a long proxied one out of it
+                //OR DO NOTHING?!
+                //item.set('uri', 'http://nodeserials.dev:1234/' + url);
+            }
         });
 
         parser.on('m3u', function (m3u) {

@@ -14,6 +14,10 @@ module.exports = function (app) {
             showError(request, response, 404);
             return false;
         }
+        if (res.list && res.list.length == 0) {
+            showError(request, response, 404);
+            return false;
+        }
 
         var jsonOutput = (request.query.json == 1);
         if (!jsonOutput) {
@@ -204,6 +208,19 @@ module.exports = function (app) {
     app.get("/latest", function (request, response) {
         f.getLatestSeries(100, function (res) {
             show(request, response, {title: "Последние добавленные", list: res}, 'list');
+        });
+    });
+
+    app.get("/alphabet/:letter", function (request, response) {
+        var letter = request.params.letter;
+        if (!letter || letter.length != 1) {
+            console.log("Wrong letter!");
+            showError(request, response, 404);
+            return false;
+        }
+        f.getSeriesByAplhabet(letter, function (res) {
+            console.log("Got " + res.length + " series for letter " + letter);
+            show(request, response, {title: "Все сериалы на букву: " + letter.toUpperCase(), list: res}, 'list');
         });
     });
 

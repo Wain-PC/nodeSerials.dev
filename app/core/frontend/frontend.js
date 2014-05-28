@@ -158,6 +158,20 @@ Frontend.prototype.getGenreSeriesById = function (id, number, offset, callback) 
 };
 
 
+Frontend.prototype.getSeriesByAplhabet = function (letter, callback) {
+    var Series = this.model.Series;
+    Series.findAndCountAll({
+        where: ["title_ru LIKE ?", letter + '%'],
+        include: [
+            {model: this.model.Poster, as: 'Poster'}
+        ],
+        order: 'title_ru'
+    }).success(function (result) {
+            callback(result.rows);
+        });
+};
+
+
 //-----------Common API END
 
 

@@ -103,6 +103,8 @@ function getVideoLink(request, url, callback) {
                 var video_vtag = v.match("var video_vtag = '(.*)'")[1];
                 var video_no_flv = v.match("video_no_flv =(.*);")[1];
                 var video_max_hd = v.match("var video_max_hd = '(.*)'")[1];
+                var extra = v.match(/extra=(.*?)("|&amp)/)[1];
+                console.log("Extra")
 
             }
             catch (err) {
@@ -126,11 +128,11 @@ function getVideoLink(request, url, callback) {
                         fname = "720.mp4";
                         break;
                 }
-                result_url = video_host + "u" + video_uid + "/videos/" + video_vtag + "." + fname;
+                result_url = video_host + "u" + video_uid + "/videos/" + video_vtag + "." + fname + "?extra=" + extra;
             } else {
                 var vkid = v.match("vkid=(.*)&" [1]);
                 fname = "vk.flv";
-                result_url = "http://" + video_host + "/assets/videos/" + video_vtag + vkid + "." + fname;
+                result_url = "http://" + video_host + "/assets/videos/" + video_vtag + vkid + "." + fname + "?extra=" + extra;
             }
             if (callback) callback(result_url);
 
